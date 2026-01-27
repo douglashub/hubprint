@@ -17,12 +17,12 @@ export class LoginComponent {
   notificationService = inject(NotificationService);
   // FIX: Add explicit type to fb to fix type inference issue.
   fb: FormBuilder = inject(FormBuilder);
-  
+
   isLoading = signal(false);
-  
+
   loginForm = this.fb.group({
-    email: ['viniedoug@gmail.com', [Validators.required, Validators.email]],
-    password: ['Teste@123', [Validators.required]]
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required]]
   });
 
   async onSubmit() {
