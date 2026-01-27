@@ -19,6 +19,11 @@ export class LoginComponent {
   fb: FormBuilder = inject(FormBuilder);
 
   isLoading = signal(false);
+  showPassword = signal(false);
+
+  togglePasswordVisibility() {
+    this.showPassword.update(value => !value);
+  }
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
