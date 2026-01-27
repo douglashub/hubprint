@@ -1,0 +1,17 @@
+{
+  "name": "PrintControl SaaS",
+  "short_name": "PrintControl",
+  "theme_color": "#2563EB",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "./",
+  "start_url": "./",
+  "icons": [
+    {
+      "src": "hubprint-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

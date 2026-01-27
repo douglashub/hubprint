@@ -2,6 +2,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
+import { PwaService } from '../../services/pwa.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,10 +12,11 @@ import { DataService } from '../../services/data.service';
 })
 export class DashboardComponent {
   dataService = inject(DataService);
+  pwaService = inject(PwaService);
 
   summary = this.dataService.dashboardSummary;
   recentActivity = this.dataService.recentActivity;
-  
+
   maxCostByClient = computed(() => {
     const costs = this.summary().costByClient;
     if (!costs || costs.length === 0) return 1;
