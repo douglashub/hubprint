@@ -1,0 +1,125 @@
+<form [formGroup]="maintenanceForm" (ngSubmit)="onSubmit()" class="space-y-6 text-left">
+
+  <!-- Header Info -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div>
+        <label for="printerId" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Selecionar Impressora</label>
+        <select id="printerId" formControlName="printerId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required>
+            <option value="" disabled>Escolha uma impressora</option>
+            @for(p of printers(); track p.id) {
+                <option [value]="p.id">{{p.model}} ({{p.asset_number}})</option>
+            }
+        </select>
+    </div>
+     <div>
+        <label for="technicianName" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Técnico</label>
+        <select id="technicianName" formControlName="technicianName" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required>
+            <option value="" disabled>Selecione um técnico</option>
+             @for(tech of technicians(); track tech) {
+                <option [value]="tech">{{ tech }}</option>
+            }
+        </select>
+    </div>
+    <div>
+        <label for="date" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Data</label>
+        <input type="date" id="date" formControlName="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required>
+    </div>
+    <div>
+        <label for="time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hora</label>
+        <input type="time" id="time" formControlName="time" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required>
+    </div>
+  </div>
+
+  <div class="p-4 border rounded-lg dark:border-gray-600 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-gray-50 dark:bg-gray-800/50">
+     <div>
+        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Patrimônio</label>
+        <p class="font-semibold text-gray-800 dark:text-gray-200">{{ maintenanceForm.get('assetNumber')?.value || 'N/A' }}</p>
+    </div>
+    <div>
+        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Equipamento</label>
+        <p class="font-semibold text-gray-800 dark:text-gray-200">{{ maintenanceForm.get('equipmentModel')?.value || 'N/A' }}</p>
+    </div>
+    <div>
+        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Cliente</label>
+        <p class="font-semibold text-gray-800 dark:text-gray-200">{{ maintenanceForm.get('clientName')?.value || 'N/A' }}</p>
+    </div>
+    <div>
+        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">Cidade</label>
+        <p class="font-semibold text-gray-800 dark:text-gray-200">{{ maintenanceForm.get('city')?.value || 'N/A' }}</p>
+    </div>
+  </div>
+
+  <!-- Checklist -->
+  <div class="space-y-4" formArrayName="checklist">
+    <h3 class="text-lg font-semibold border-b pb-2 dark:border-gray-600">Checklist de Itens</h3>
+    <div class="overflow-x-auto border dark:border-gray-700 rounded-lg">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <tr>
+            <th scope="col" class="px-4 py-3">Item</th>
+            <th scope="col" class="px-2 py-3 text-center w-16">OK</th>
+            <th scope="col" class="px-2 py-3 text-center w-20">Pendente</th>
+            <th scope="col" class="px-2 py-3 text-center w-16">N/A</th>
+            <th scope="col" class="px-4 py-3">Observações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of checklist.controls; track $index) {
+            <tr [formGroupName]="$index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+              <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">
+                {{ item.get('name')?.value }}
+              </td>
+              <td class="px-2 py-2 text-center">
+                <input type="radio" [formControlName]="'status'" value="OK" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500">
+              </td>
+              <td class="px-2 py-2 text-center">
+                <input type="radio" [formControlName]="'status'" value="PENDENTE" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500">
+              </td>
+              <td class="px-2 py-2 text-center">
+                <input type="radio" [formControlName]="'status'" value="N/A" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500">
+              </td>
+              <td class="px-4 py-2">
+                <input type="text" [formControlName]="'observation'" placeholder="..." class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md p-1.5 dark:bg-gray-600 focus:ring-primary-500 focus:border-primary-500">
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer Info -->
+  <div class="space-y-6 pt-4 border-t dark:border-gray-600">
+      <div>
+          <label for="clientSignatureName" class="block mb-1 text-sm font-medium">Assinatura Cliente (Nome Completo)</label>
+          <input type="text" id="clientSignatureName" formControlName="clientSignatureName" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required>
+      </div>
+      <div class="p-4 border rounded-lg dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50">
+          <p class="text-center text-sm font-semibold mb-3 text-gray-600 dark:text-gray-300">ÁREA DESTINADA AO RESPONSÁVEL TÉCNICO</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                  <label for="technicianNameDisplay" class="block mb-1 text-sm font-medium">Técnico</label>
+                  <input type="text" id="technicianNameDisplay" [value]="maintenanceForm.get('technicianName')?.value" readonly class="bg-gray-200 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 cursor-not-allowed">
+              </div>
+              <div>
+                  <label for="technicianSignature" class="block mb-1 text-sm font-medium">Assinatura (digite o nome)</label>
+                  <input type="text" id="technicianSignature" formControlName="technicianSignature" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required>
+              </div>
+          </div>
+      </div>
+      <div>
+          <label for="recommendations" class="block mb-1 text-sm font-medium">Recomendações / Ações Corretivas</label>
+          <textarea id="recommendations" formControlName="recommendations" rows="3" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600"></textarea>
+      </div>
+  </div>
+
+
+  <div class="flex justify-end pt-4 space-x-2">
+    <button type="button" (click)="onCancel()" class="text-gray-900 bg-white border border-gray-300 rounded-lg text-sm px-5 py-2.5">
+      Cancelar
+    </button>
+    <button type="submit" [disabled]="maintenanceForm.invalid" class="text-white bg-primary-600 hover:bg-primary-700 font-medium rounded-lg text-sm px-5 py-2.5 disabled:opacity-50">
+      Salvar
+    </button>
+  </div>
+</form>

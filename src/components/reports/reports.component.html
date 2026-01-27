@@ -1,0 +1,142 @@
+
+<div class="container mx-auto">
+  <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+    <h2 class="text-3xl font-bold text-gray-800 dark:text-white text-center sm:text-left">Relatórios de Impressão</h2>
+    <div class="flex space-x-2 w-full sm:w-auto">
+      <button (click)="exportAsCsv()" class="flex-1 sm:flex-none bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50" [disabled]="!printJobs() || printJobs()?.length === 0">
+        Exportar CSV
+      </button>
+      <button (click)="exportAsPdf()" class="flex-1 sm:flex-none bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition disabled:opacity-50" [disabled]="!printJobs() || printJobs()?.length === 0">
+        Exportar PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="md:bg-white md:dark:bg-gray-900 md:rounded-lg md:shadow-md">
+    <!-- Desktop Table View -->
+    <div class="overflow-x-auto hidden md:block">
+       <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <tr>
+            <th scope="col" class="px-2 py-3 sm:px-6">Usuário</th>
+            <th scope="col" class="px-2 py-3 sm:px-6">Impressora</th>
+            <th scope="col" class="px-2 py-3 sm:px-6">Documento</th>
+            <th scope="col" class="px-2 py-3 sm:px-6">Páginas</th>
+            <th scope="col" class="px-2 py-3 sm:px-6">Custo</th>
+            <th scope="col" class="px-2 py-3 sm:px-6">Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (printJobs(); as jobs) {
+            @for (job of jobs; track job.id) {
+              <tr (click)="openJobDetails(job)" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors duration-200">
+                <td class="px-2 py-4 sm:px-6 font-medium text-gray-900 dark:text-white break-words">{{ job.user_name }}</td>
+                <td class="px-2 py-4 sm:px-6 break-words">{{ job.printer_name }}</td>
+                <td class="px-2 py-4 sm:px-6 break-words">{{ job.document_name }}</td>
+                <td class="px-2 py-4 sm:px-6">{{ job.total_pages }}</td>
+                <td class="px-2 py-4 sm:px-6">{{ formatCurrency(job.total_cost) }}</td>
+                <td class="px-2 py-4 sm:px-6 whitespace-nowrap">{{ job.printed_at | date:'dd/MM/yy HH:mm' }}</td>
+              </tr>
+            }
+          } @else {
+            <tr>
+              <td colspan="6" class="px-2 py-4 sm:px-6 text-center">Carregando relatório...</td>
+            </tr>
+          }
+          @if(printJobs()?.length === 0) {
+             <tr>
+              <td colspan="6" class="px-2 py-4 sm:px-6 text-center">Nenhum registro de impressão encontrado.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+     <!-- Mobile Card View -->
+    <div class="md:hidden space-y-4">
+        @if (printJobs(); as jobs) {
+            @if (jobs.length > 0) {
+                @for (job of jobs; track job.id) {
+                    <div (click)="openJobDetails(job)" class="bg-white dark:bg-gray-900 rounded-lg shadow p-4 cursor-pointer transition hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <div class="flex justify-between items-start mb-2 gap-2">
+                            <div>
+                                <p class="font-semibold text-gray-900 dark:text-white break-all" [title]="job.document_name">{{ job.document_name }}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">por {{ job.user_name }}</p>
+                            </div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ job.printed_at | date:'dd/MM/yy HH:mm' }}</p>
+                        </div>
+                        <div class="border-t dark:border-gray-700 pt-2 text-sm space-y-1">
+                            <div class="flex justify-between gap-4">
+                                <span class="text-gray-500 dark:text-gray-400">Impressora:</span>
+                                <span class="text-gray-800 dark:text-gray-200 font-medium text-right break-words">{{ job.printer_name }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Páginas:</span>
+                                <span class="text-gray-800 dark:text-gray-200 font-medium">{{ job.total_pages }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Custo:</span>
+                                <span class="text-gray-800 dark:text-gray-200 font-medium">{{ formatCurrency(job.total_cost) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            } @else {
+                <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-6 text-center text-gray-500 dark:text-gray-400">
+                    Nenhum registro de impressão encontrado.
+                </div>
+            }
+        } @else {
+            <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-4 text-center">Carregando relatório...</div>
+        }
+    </div>
+
+  </div>
+</div>
+
+<!-- Job Details Modal -->
+<app-modal [isOpen]="isDetailModalOpen()" title="Detalhes da Impressão" (closeModal)="closeJobDetails()">
+    @if (selectedJob(); as job) {
+        <div class="space-y-4 text-sm">
+            <div class="pb-2 border-b dark:border-gray-600">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Documento</p>
+                <p class="mt-1 font-semibold text-base text-gray-900 dark:text-white break-all">{{ job.document_name }}</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Usuário</p>
+                    <p class="mt-1 text-gray-900 dark:text-white">{{ job.user_name }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Impressora</p>
+                    <p class="mt-1 text-gray-900 dark:text-white">{{ job.printer_name }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Total de Páginas</p>
+                    <p class="mt-1 text-gray-900 dark:text-white">{{ job.total_pages }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Custo Total</p>
+                    <p class="mt-1 text-gray-900 dark:text-white">{{ formatCurrency(job.total_cost) }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Data da Impressão</p>
+                    <p class="mt-1 text-gray-900 dark:text-white">{{ job.printed_at | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+                </div>
+                 <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Status</p>
+                    <p class="mt-1">
+                      <span [class]="'px-2 py-1 inline-block text-xs font-semibold rounded-full ' + (job.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300')">
+                          {{ job.status === 'completed' ? 'Concluído' : 'Cancelado' }}
+                      </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end pt-6">
+            <button type="button" (click)="closeJobDetails()" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">
+                Fechar
+            </button>
+        </div>
+    }
+</app-modal>

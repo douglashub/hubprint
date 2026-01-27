@@ -1,0 +1,88 @@
+
+<form [formGroup]="maintenanceForm" (ngSubmit)="onSubmit()" class="space-y-4">
+  
+  <div>
+    <label for="client_id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cliente</label>
+    <select id="client_id" formControlName="client_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required>
+      <option value="" disabled>Selecione um cliente</option>
+      @for(client of clients(); track client.id) {
+          <option [value]="client.id">{{ client.trade_name }}</option>
+      }
+    </select>
+  </div>
+  
+  <div>
+    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Impressora(s)</label>
+    <div formArrayName="printers" class="max-h-48 overflow-y-auto space-y-2 rounded-lg border p-3 dark:border-gray-600">
+      @for(printerControl of printersFormArray.controls; track $index) {
+        <div [formGroupName]="$index" class="flex items-center">
+          <input [id]="'printer-' + $index" type="checkbox" formControlName="selected" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
+          <label [for]="'printer-' + $index" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+              {{ printerControl.value.model }} (Patrimônio: {{ printerControl.value.asset_number }})
+          </label>
+        </div>
+      }
+      @if(printersFormArray.controls.length === 0) {
+        <p class="text-sm text-gray-500 dark:text-gray-400">Selecione um cliente para ver as impressoras disponíveis.</p>
+      }
+    </div>
+     @if (maintenanceForm.get('printers')?.hasError('required') && maintenanceForm.get('printers')?.touched) {
+      <p class="text-xs text-red-500 mt-1">Selecione pelo menos uma impressora.</p>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <label for="scheduled_date" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Data</label>
+      <input type="date" id="scheduled_date" formControlName="scheduled_date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required>
+    </div>
+     <div>
+      <label for="scheduled_time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hora</label>
+      <input type="time" id="scheduled_time" formControlName="scheduled_time" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <label for="type" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tipo de Manutenção</label>
+      <select id="type" formControlName="type" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600">
+        <option value="Preventiva">Preventiva</option>
+        <option value="Corretiva">Corretiva</option>
+      </select>
+    </div>
+    <div>
+      <label for="technician" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Técnico Responsável</label>
+      <select id="technician" formControlName="technician" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required>
+        <option value="" disabled>Selecione um técnico</option>
+        @for(tech of technicians(); track tech) {
+            <option [value]="tech">{{ tech }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label for="description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Descrição do Serviço / Problema</label>
+    <textarea id="description" formControlName="description" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600" required></textarea>
+  </div>
+
+   <div>
+      <label for="status" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>
+      <select id="status" formControlName="status" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600">
+        <option value="Agendada">Agendada</option>
+        <option value="Em Andamento">Em Andamento</option>
+        <option value="Concluída">Concluída</option>
+        <option value="Cancelada">Cancelada</option>
+      </select>
+    </div>
+
+
+  <div class="flex justify-end pt-4 space-x-2">
+    <button type="button" (click)="onCancel()" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 rounded-lg text-sm px-5 py-2.5">
+      Cancelar
+    </button>
+    <button type="submit" [disabled]="maintenanceForm.invalid" class="text-white bg-primary-600 hover:bg-primary-700 font-medium rounded-lg text-sm px-5 py-2.5 disabled:opacity-50">
+      Salvar Agendamento
+    </button>
+  </div>
+</form>

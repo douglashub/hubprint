@@ -1,0 +1,32 @@
+
+<header class="bg-white dark:bg-gray-900 shadow-sm px-4 sm:px-6 py-4 flex justify-between items-center z-20">
+  <div class="flex items-center">
+    <!-- Hamburger Menu Button -->
+    <button (click)="toggleSidebar()" class="md:hidden mr-4 text-gray-600 dark:text-gray-300">
+      <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+    </button>
+    <h1 class="text-xl font-semibold text-gray-800 dark:text-white">PrintControl</h1>
+  </div>
+  <div class="flex items-center space-x-4">
+    <div class="relative">
+      <button (click)="toggleDropdown()" class="flex items-center space-x-2 focus:outline-none">
+        @if (user(); as currentUser) {
+          <img class="h-9 w-9 rounded-full object-cover" [src]="currentUser.avatar_url" [alt]="currentUser.full_name">
+          <span class="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300">{{ currentUser.full_name }}</span>
+        }
+        <svg class="h-5 w-5 text-gray-500 hidden md:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+
+      @if (isDropdownOpen()) {
+        <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-20 ring-1 ring-black ring-opacity-5">
+          <a (click)="navigateToProfile()" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Meu Perfil</a>
+          <a (click)="logout()" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Sair</a>
+        </div>
+      }
+    </div>
+  </div>
+</header>

@@ -1,0 +1,155 @@
+
+<div class="container mx-auto">
+  <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Dashboard</h2>
+
+  @if (summary(); as data) {
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
+        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total de Impressões (Mês)</h3>
+        <p class="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{{ formatNumber(data.totalPrints) }}</p>
+      </div>
+      <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
+        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Custo Total (Mês)</h3>
+        <p class="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{{ formatCurrency(data.totalCost) }}</p>
+      </div>
+      <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
+        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Impressoras Ativas</h3>
+        <p class="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{{ data.activePrinters }}</p>
+      </div>
+      <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
+        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Usuários Monitorados</h3>
+        <p class="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{{ data.users }}</p>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <!-- Custo por Cliente -->
+      <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
+        <h3 class="font-semibold text-lg mb-4 text-gray-800 dark:text-white">Custo por Cliente</h3>
+        <div class="space-y-4">
+          @for (client of data.costByClient; track client.name) {
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ client.name }}</span>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ formatCurrency(client.value) }}</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                <div class="bg-primary-600 h-2.5 rounded-full" [style.width]="getBarWidth(client.value, maxCostByClient())"></div>
+              </div>
+            </div>
+          }
+          @if (data.costByClient.length === 0) {
+            <p class="text-sm text-center text-gray-500 py-4">Nenhum custo registrado este mês.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Páginas por Impressora -->
+      <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
+        <h3 class="font-semibold text-lg mb-4 text-gray-800 dark:text-white">Páginas por Impressora</h3>
+        <div class="space-y-4">
+          @for (printer of data.pagesByPrinter; track printer.name) {
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ printer.name }}</span>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ formatNumber(printer.value) }} pgs</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                <div class="bg-green-500 h-2.5 rounded-full" [style.width]="getBarWidth(printer.value, maxPagesByPrinter())"></div>
+              </div>
+            </div>
+          }
+          @if (data.pagesByPrinter.length === 0) {
+            <p class="text-sm text-center text-gray-500 py-4">Nenhuma página impressa este mês.</p>
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <p>Carregando dados do dashboard...</p>
+  }
+
+  <!-- Recent Activity -->
+  <div class="bg-white dark:bg-gray-900 p-4 sm:p-6 rounded-lg shadow-md">
+    <h3 class="font-semibold text-lg mb-4 text-gray-800 dark:text-white">Atividade Recente</h3>
+    
+    <!-- Desktop Table View -->
+    <div class="hidden md:block overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <tr>
+            <th scope="col" class="px-2 py-3 sm:px-6">Usuário</th>
+            <th scope="col" class="px-2 py-3 sm:px-6">Impressora</th>
+            <th scope="col" class="px-2 py-3 sm:px-6">Documento</th>
+            <th scope="col" class="px-2 py-3 sm:px-6">Páginas</th>
+            <th scope="col" class="px-2 py-3 sm:px-6">Custo</th>
+            <th scope="col" class="px-2 py-3 sm:px-6">Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (recentActivity(); as activities) {
+            @for (job of activities; track job.id) {
+              <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                <td class="px-2 py-4 sm:px-6 font-medium text-gray-900 dark:text-white break-words">{{ job.user_name }}</td>
+                <td class="px-2 py-4 sm:px-6 break-words">{{ job.printer_name }}</td>
+                <td class="px-2 py-4 sm:px-6 break-words">{{ job.document_name }}</td>
+                <td class="px-2 py-4 sm:px-6">{{ job.total_pages }}</td>
+                <td class="px-2 py-4 sm:px-6">{{ formatCurrency(job.total_cost) }}</td>
+                <td class="px-2 py-4 sm:px-6 whitespace-nowrap">{{ job.printed_at | date:'dd/MM/yy HH:mm' }}</td>
+              </tr>
+            }
+          } @else {
+            <tr>
+              <td colspan="6" class="px-2 py-4 sm:px-6 text-center">Carregando atividades...</td>
+            </tr>
+          }
+           @if (recentActivity()?.length === 0) {
+            <tr>
+              <td colspan="6" class="px-2 py-4 sm:px-6 text-center">Nenhuma atividade recente.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="md:hidden space-y-3">
+        @if (recentActivity(); as activities) {
+            @if (activities.length > 0) {
+                @for (job of activities; track job.id) {
+                    <div class="p-4 border rounded-lg dark:border-gray-700">
+                        <div class="flex justify-between items-start mb-2 gap-2">
+                            <div>
+                                <p class="font-semibold text-gray-900 dark:text-white break-all" [title]="job.document_name">{{ job.document_name }}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">por {{ job.user_name }}</p>
+                            </div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ job.printed_at | date:'dd/MM/yy' }}</p>
+                        </div>
+                        <div class="border-t dark:border-gray-700 pt-2 text-sm space-y-1">
+                            <div class="flex justify-between gap-4">
+                                <span class="text-gray-500 dark:text-gray-400">Impressora:</span>
+                                <span class="text-gray-800 dark:text-gray-200 font-medium text-right break-words">{{ job.printer_name }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Páginas:</span>
+                                <span class="text-gray-800 dark:text-gray-200 font-medium">{{ job.total_pages }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Custo:</span>
+                                <span class="text-gray-800 dark:text-gray-200 font-medium">{{ formatCurrency(job.total_cost) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            } @else {
+                <div class="text-center py-4 text-gray-500 dark:text-gray-400">Nenhuma atividade recente.</div>
+            }
+        } @else {
+            <div class="p-4 text-center">Carregando atividades...</div>
+        }
+    </div>
+
+  </div>
+</div>

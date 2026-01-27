@@ -1,0 +1,90 @@
+
+<div class="min-h-screen bg-white dark:bg-gray-900 md:grid md:grid-cols-2 lg:grid-cols-5">
+  <!-- Branding Column -->
+  <div class="hidden md:flex md:col-span-1 lg:col-span-2 bg-primary-700 text-white flex-col justify-between p-8 sm:p-12">
+    <div class="flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+      </svg>
+      <h1 class="text-2xl font-bold tracking-wider">PrintControl</h1>
+    </div>
+
+    <div>
+        <p class="text-2xl font-semibold">"A melhor forma de prever o futuro é criá-lo."</p>
+        <p class="mt-2 text-lg text-primary-200">- Peter Drucker</p>
+    </div>
+
+    <div class="text-sm text-primary-300">
+      &copy; 2024 PrintControl SaaS. Todos os direitos reservados.
+    </div>
+  </div>
+
+  <!-- Form Column -->
+  <div class="flex items-center justify-center min-h-screen md:col-span-1 lg:col-span-3 py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+    <div class="w-full max-w-sm space-y-8">
+      <div>
+        <div class="flex items-center gap-2 mb-6 md:hidden">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">PrintControl</h1>
+        </div>
+        <h2 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Acesse sua conta</h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Bem-vindo de volta! Por favor, insira seus dados.
+        </p>
+      </div>
+      <form class="mt-8 space-y-6" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="space-y-4">
+          <div>
+            <label for="email-address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+            <div class="mt-1">
+                <input formControlName="email" id="email-address" name="email" type="email" autocomplete="email" required
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            </div>
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
+             <div class="mt-1">
+                <input formControlName="password" id="password" name="password" type="password" autocomplete="current-password" required
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+             </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <input id="remember-me" name="remember-me" type="checkbox"
+              class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+            <label for="remember-me" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Lembrar-me</label>
+          </div>
+
+          <div class="text-sm">
+            <a routerLink="/forgot-password" class="font-medium text-primary-600 hover:text-primary-500">Esqueceu a senha?</a>
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" [disabled]="isLoading()"
+            class="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed">
+            @if (isLoading()) {
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Entrando...
+            } @else {
+              Entrar
+            }
+          </button>
+        </div>
+      </form>
+       <div class="text-sm text-center">
+          <p class="text-gray-600 dark:text-gray-400">
+              Não tem uma conta?
+              <a routerLink="/register" class="font-medium text-primary-600 hover:text-primary-500">Cadastre-se</a>
+          </p>
+      </div>
+    </div>
+  </div>
+</div>

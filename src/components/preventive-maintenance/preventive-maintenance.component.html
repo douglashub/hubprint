@@ -1,0 +1,244 @@
+
+<div class="container mx-auto">
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <h2 class="text-3xl font-bold text-gray-800 dark:text-white">Agenda de Manutenções</h2>
+    
+    <div class="flex w-full sm:w-auto flex-col sm:flex-row items-center gap-2">
+      <!-- Search Input -->
+      <div class="relative w-full sm:w-auto">
+        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+          </svg>
+        </div>
+        <input type="text" [value]="searchTerm()" (input)="onSearch($event)" class="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600" placeholder="Filtrar agendamentos...">
+      </div>
+
+      <button (click)="openConfirmDeleteSelectedModal()" [disabled]="!isAnyScheduleSelected()" class="w-full sm:w-auto text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 font-medium rounded-lg text-sm px-4 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
+        Excluir Selecionados
+      </button>
+
+      <button (click)="openAddMaintenanceModal()" class="bg-primary-600 text-white px-4 py-2.5 rounded-lg hover:bg-primary-700 transition w-full sm:w-auto">
+        Agendar Manutenção
+      </button>
+    </div>
+  </div>
+
+
+  <div id="maintenance-content">
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-md overflow-hidden">
+        <!-- Desktop Table -->
+        <div class="overflow-x-auto hidden md:block">
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                <th scope="col" class="p-4 w-4">
+                  <div class="flex items-center">
+                    <input type="checkbox" (change)="toggleSelectAll()" [checked]="isAllSchedulesSelected()" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
+                  </div>
+                </th>
+                <th scope="col" class="px-6 py-3">Data</th>
+                <th scope="col" class="px-6 py-3">Cliente</th>
+                <th scope="col" class="px-6 py-3">Impressora(s)</th>
+                <th scope="col" class="px-6 py-3">Tipo</th>
+                <th scope="col" class="px-6 py-3">Técnico</th>
+                <th scope="col" class="px-6 py-3">Status</th>
+                <th scope="col" class="px-6 py-3 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if(schedules().length > 0) {
+                @for (item of schedules(); track item.id) {
+                  <tr (click)="openDetailModal(item)" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer">
+                    <td class="p-4 w-4" (click)="$event.stopPropagation()">
+                      <div class="flex items-center">
+                        <input type="checkbox" (change)="toggleSelection(item.id)" [checked]="selectedScheduleIds().has(item.id)" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ item.scheduled_date | date:'dd/MM/yyyy' }} às {{item.scheduled_time}}</td>
+                    <td class="px-6 py-4">{{ item.client_name }}</td>
+                    <td class="px-6 py-4">{{ formatPrintersList(item.printers) }}</td>
+                    <td class="px-6 py-4">{{ item.type }}</td>
+                    <td class="px-6 py-4">{{ item.technician }}</td>
+                    <td class="px-6 py-4">
+                      <span [class]="'px-2 py-1 text-xs font-semibold rounded-full ' + getMaintenanceStatusClass(item.status)">{{ item.status }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-4" (click)="$event.stopPropagation()">
+                      <button (click)="openEditMaintenanceModal(item)" class="font-medium text-primary-600 hover:underline">Editar</button>
+                      <button (click)="openConfirmDeleteMaintenanceModal(item)" class="font-medium text-red-600 hover:underline">Excluir</button>
+                    </td>
+                  </tr>
+                }
+              } @else {
+                 <tr>
+                  <td colspan="8" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
+                    <p class="font-semibold text-lg">Nenhum agendamento encontrado.</p>
+                    @if (searchTerm()) {
+                      <p class="mt-1">Tente ajustar o filtro de busca.</p>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <!-- Mobile Cards -->
+         <div class="md:hidden">
+          @if (schedules().length > 0) {
+            @for(item of schedules(); track item.id) {
+              <div (click)="openDetailModal(item)" class="p-4 border-b dark:border-gray-700 cursor-pointer">
+                <div class="flex justify-between items-start">
+                  <div class="flex items-start space-x-3">
+                      <input (click)="$event.stopPropagation()" type="checkbox" (change)="toggleSelection(item.id)" [checked]="selectedScheduleIds().has(item.id)" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 shrink-0 mt-1">
+                      <div>
+                        <p class="font-semibold text-gray-900 dark:text-white">{{ item.client_name }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ formatPrintersShortList(item.printers) }}</p>
+                      </div>
+                  </div>
+                  <span [class]="'px-2 py-1 text-xs font-semibold rounded-full ' + getMaintenanceStatusClass(item.status)">{{ item.status }}</span>
+                </div>
+                <div class="mt-2 pt-2 border-t dark:border-gray-600 text-sm pl-7">
+                  <p class="text-gray-800 dark:text-gray-200 font-medium">Agendado para: {{ item.scheduled_date | date:'dd/MM/yyyy' }} às {{item.scheduled_time}}</p>
+                  <p class="text-gray-500 dark:text-gray-400">Técnico: {{ item.technician }}</p>
+                  <p class="text-gray-500 dark:text-gray-400">Tipo: {{ item.type }}</p>
+                </div>
+                <div (click)="$event.stopPropagation()" class="mt-4 flex justify-end space-x-4">
+                  <button (click)="openEditMaintenanceModal(item)" class="font-medium text-primary-600 hover:underline">Editar</button>
+                  <button (click)="openConfirmDeleteMaintenanceModal(item)" class="font-medium text-red-600 hover:underline">Excluir</button>
+                </div>
+              </div>
+            }
+          } @else {
+             <div class="p-6 text-center text-gray-500 dark:text-gray-400">
+                <p class="font-semibold text-lg">Nenhum agendamento encontrado.</p>
+                @if (searchTerm()) {
+                  <p class="mt-1">Tente ajustar o filtro de busca.</p>
+                }
+              </div>
+          }
+        </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Maintenance Form Modal -->
+<app-modal [isOpen]="isMaintenanceModalOpen()" [title]="maintenanceModalTitle()" (closeModal)="isMaintenanceModalOpen.set(false)" size="3xl">
+  <app-maintenance-form [schedule]="selectedSchedule()" (save)="handleSaveMaintenance($event)" (cancel)="isMaintenanceModalOpen.set(false)"></app-maintenance-form>
+</app-modal>
+
+
+<!-- Confirm Single Delete Maintenance Modal -->
+<app-modal [isOpen]="isConfirmMaintenanceDeleteModalOpen()" title="Confirmar Exclusão" (closeModal)="isConfirmMaintenanceDeleteModalOpen.set(false)">
+  <p>Tem certeza que deseja excluir este agendamento para <strong>{{ scheduleToDelete()?.client_name }}</strong>? Esta ação não pode ser desfeita.</p>
+  <div class="flex justify-end pt-6 space-x-2">
+    <button (click)="isConfirmMaintenanceDeleteModalOpen.set(false)" class="text-gray-900 bg-white border border-gray-300 rounded-lg px-5 py-2.5">Cancelar</button>
+    <button (click)="handleDeleteMaintenance()" class="text-white bg-red-600 hover:bg-red-700 rounded-lg px-5 py-2.5">Excluir</button>
+  </div>
+</app-modal>
+
+<!-- Confirm Bulk Delete Modal -->
+<app-modal [isOpen]="isConfirmDeleteSelectedModalOpen()" title="Confirmar Exclusão" (closeModal)="isConfirmDeleteSelectedModalOpen.set(false)">
+  <p>Tem certeza que deseja excluir os <strong>{{ selectedScheduleIds().size }}</strong> agendamentos selecionados? Esta ação não pode ser desfeita.</p>
+  <div class="flex justify-end pt-6 space-x-2">
+    <button (click)="isConfirmDeleteSelectedModalOpen.set(false)" class="text-gray-900 bg-white border border-gray-300 rounded-lg px-5 py-2.5">Cancelar</button>
+    <button (click)="handleDeleteSelected()" class="text-white bg-red-600 hover:bg-red-700 rounded-lg px-5 py-2.5">Excluir</button>
+  </div>
+</app-modal>
+
+<!-- Detail Modal -->
+<app-modal [isOpen]="isDetailModalOpen()" title="Detalhes do Agendamento" (closeModal)="closeDetailModal()">
+  @if(scheduleForDetails(); as schedule) {
+    <div class="space-y-4 text-sm">
+      
+      <!-- Client Details -->
+      @if(clientForDetails(); as client) {
+        <div class="pb-4 border-b dark:border-gray-600">
+          <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Detalhes do Cliente</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-4">
+            <div>
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Nome Fantasia</p>
+              <p class="mt-1 text-gray-900 dark:text-white">{{ client.trade_name }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400">CNPJ</p>
+              <p class="mt-1 text-gray-900 dark:text-white">{{ client.cnpj }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Contato</p>
+              <p class="mt-1 text-gray-900 dark:text-white">{{ client.contact_person }}</p>
+            </div>
+            <div class="md:col-span-2">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Endereço Completo</p>
+              <p class="mt-1 text-gray-900 dark:text-white">
+                {{ client.address.street }}, {{ client.address.number }} - {{ client.address.neighborhood }}, {{ client.address.city }} - {{ client.address.state }}
+              </p>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400">CEP</p>
+              <p class="mt-1 text-gray-900 dark:text-white">{{ client.address.zip }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Telefone</p>
+              <p class="mt-1 text-gray-900 dark:text-white">{{ client.contact_phone }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Schedule Details -->
+      <div class="pt-2">
+        <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Detalhes do Agendamento</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
+          <div>
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Data e Hora</p>
+            <p class="mt-1 text-gray-900 dark:text-white">{{ schedule.scheduled_date | date:'dd/MM/yyyy' }} às {{ schedule.scheduled_time }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Tipo</p>
+            <p class="mt-1 text-gray-900 dark:text-white">{{ schedule.type }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Técnico</p>
+            <p class="mt-1 text-gray-900 dark:text-white">{{ schedule.technician }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Status</p>
+            <p class="mt-1">
+              <span [class]="'px-2 py-1 inline-block text-xs font-semibold rounded-full ' + getMaintenanceStatusClass(schedule.status)">
+                  {{ schedule.status }}
+              </span>
+            </p>
+          </div>
+          <div class="sm:col-span-2">
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Impressoras</p>
+            <p class="mt-1 text-gray-900 dark:text-white">{{ formatPrintersList(schedule.printers) }}</p>
+          </div>
+          <div class="sm:col-span-2">
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Descrição</p>
+            <p class="mt-1 text-gray-900 dark:text-white whitespace-pre-wrap">{{ schedule.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end pt-6 space-x-3">
+        @if(schedule.status === 'Agendada' || schedule.status === 'Em Andamento' || schedule.status === 'Concluída') {
+          <button type="button" (click)="startMaintenance(schedule.id)" 
+            [class]="(schedule.status === 'Agendada' || schedule.status === 'Em Andamento') ? 'bg-green-600 hover:bg-green-700' : 'bg-primary-600 hover:bg-primary-700'"
+            class="text-white rounded-lg px-5 py-2.5">
+                @if(schedule.status === 'Agendada') {
+                    Iniciar Manutenção
+                } @else if (schedule.status === 'Em Andamento') {
+                    Continuar Manutenção
+                } @else if (schedule.status === 'Concluída') {
+                    Acessar Plano de Manutenção
+                }
+          </button>
+        }
+        <button type="button" (click)="generateDetailsPdf()" class="text-white bg-primary-600 hover:bg-primary-700 rounded-lg px-5 py-2.5">
+          Gerar PDF
+        </button>
+        <button type="button" (click)="closeDetailModal()" class="text-gray-900 bg-white border border-gray-300 rounded-lg px-5 py-2.5">Fechar</button>
+    </div>
+  }
+</app-modal>

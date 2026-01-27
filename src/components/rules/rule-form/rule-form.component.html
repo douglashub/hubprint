@@ -1,0 +1,80 @@
+
+<form [formGroup]="ruleForm" (ngSubmit)="onSubmit()" class="space-y-4">
+  
+  <div>
+    <label for="description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Descrição da Regra</label>
+    <input type="text" id="description" formControlName="description" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Ex: Cota mensal para o setor de Marketing" required>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label for="type" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tipo</label>
+      <select id="type" formControlName="type" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+        <option value="quota">Cota</option>
+        <option value="restriction">Restrição</option>
+      </select>
+    </div>
+    <div>
+      <label for="scope" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Escopo</label>
+      <select id="scope" formControlName="scope" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+        <option value="department">Departamento</option>
+        <option value="user">Usuário</option>
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label for="target_id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alvo</label>
+    @if(ruleForm.get('scope')?.value === 'user') {
+      <select id="target_id" formControlName="target_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+        <option value="" disabled>Selecione um usuário</option>
+        @for(user of users(); track user.id) {
+            <option [value]="user.id">{{ user.full_name }}</option>
+        }
+      </select>
+    } @else {
+      <select id="target_id" formControlName="target_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+        <option value="" disabled>Selecione um departamento</option>
+        @for(dept of departments(); track dept) {
+            <option [value]="dept">{{ dept }}</option>
+        }
+      </select>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="limit_pages" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Limite de Páginas</label>
+        <input type="number" id="limit_pages" formControlName="limit_pages" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Deixe em branco se não aplicável">
+      </div>
+      <div>
+        <label for="limit_cost" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Limite de Custo (R$)</label>
+        <input type="number" id="limit_cost" formControlName="limit_cost" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Deixe em branco se não aplicável">
+      </div>
+  </div>
+
+  <div>
+    <label for="action" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Ação ao Atingir Limite</label>
+    <select id="action" formControlName="action" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+      <option value="alert">Apenas Alertar</option>
+      <option value="block">Bloquear Impressão</option>
+    </select>
+  </div>
+
+  <div class="flex items-center">
+    <label for="is_active" class="relative inline-flex items-center cursor-pointer">
+      <input type="checkbox" id="is_active" formControlName="is_active" class="sr-only peer">
+      <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+      <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Regra Ativa</span>
+    </label>
+  </div>
+
+  <div class="flex justify-end pt-4 space-x-2">
+    <button type="button" (click)="onCancel()" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">
+      Cancelar
+    </button>
+    <button type="submit" [disabled]="ruleForm.invalid" class="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 disabled:bg-primary-400 disabled:cursor-not-allowed dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+      Salvar Regra
+    </button>
+  </div>
+</form>

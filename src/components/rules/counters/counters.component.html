@@ -1,0 +1,137 @@
+
+<div id="counters-content">
+  <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+    <div class="w-full sm:max-w-xs">
+        <label for="printer-select" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Selecione uma Impressora</label>
+        <select id="printer-select" (change)="onPrinterChange($event)" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            <option value="" selected>-- Escolha um equipamento --</option>
+            @for(printer of printers(); track printer.id) {
+                <option [value]="printer.id">{{ printer.model }} ({{ printer.serial_number }})</option>
+            }
+        </select>
+    </div>
+    <div class="flex space-x-2 w-full sm:w-auto">
+      <button (click)="exportAsCsv()" [disabled]="!selectedPrinterCounters()" class="w-full sm:w-auto bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+        Exportar CSV
+      </button>
+      <button (click)="exportAsPdf()" [disabled]="!selectedPrinterCounters()" class="w-full sm:w-auto bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+        Exportar PDF
+      </button>
+    </div>
+  </div>
+
+  @if (selectedPrinterCounters(); as counters) {
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 font-mono text-sm text-gray-800 dark:text-gray-200">
+        <!-- Main Counters -->
+        <table class="w-full mb-6">
+            <thead>
+                <tr class="text-left">
+                    <th class="pb-2 font-semibold">Contadores</th>
+                    <th class="pb-2 font-semibold text-right">Colorido</th>
+                    <th class="pb-2 font-semibold text-right">P&B</th>
+                    <th class="pb-2 font-semibold text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Copiar</td>
+                    <td class="text-right">{{ counters.general.copy.color }}</td>
+                    <td class="text-right">{{ counters.general.copy.bw }}</td>
+                    <td class="text-right font-semibold">{{ counters.general.copy.color + counters.general.copy.bw }}</td>
+                </tr>
+                <tr>
+                    <td>Impressora</td>
+                    <td class="text-right">{{ counters.general.print.color }}</td>
+                    <td class="text-right">{{ counters.general.print.bw }}</td>
+                    <td class="text-right font-semibold">{{ counters.general.print.color + counters.general.print.bw }}</td>
+                </tr>
+                <tr class="border-t border-gray-300 dark:border-gray-700 font-semibold">
+                    <td class="pt-1">Total</td>
+                    <td class="pt-1 text-right">{{ counters.general.total.color }}</td>
+                    <td class="pt-1 text-right">{{ counters.general.total.bw }}</td>
+                    <td class="pt-1 text-right">{{ counters.general.total.color + counters.general.total.bw }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Paper Size -->
+        <table class="w-full mb-6">
+            <thead>
+                 <tr class="text-left">
+                    <th class="pb-2 font-semibold">Tamanho papel</th>
+                    <th class="pb-2 font-semibold text-right"></th>
+                    <th class="pb-2 font-semibold text-right"></th>
+                    <th class="pb-2 font-semibold text-right"></th>
+                </tr>
+            </thead>
+             <tbody>
+                @for(paper of (counters.paperSizes | keyvalue); track paper.key) {
+                     <tr>
+                        <td>{{ paper.key }}</td>
+                        <td class="text-right">{{ paper.value.color }}</td>
+                        <td class="text-right">{{ paper.value.bw }}</td>
+                        <td class="text-right font-semibold">{{ paper.value.color + paper.value.bw }}</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Scanned -->
+            <table class="w-full">
+                <thead>
+                    <tr class="text-left">
+                        <th class="pb-2 font-semibold">Páginas digitalizadas</th>
+                        <th class="pb-2 font-semibold text-right"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Copiar</td>
+                        <td class="text-right">{{ counters.scannedPages.copy }}</td>
+                    </tr>
+                    <tr>
+                        <td>Outro</td>
+                        <td class="text-right">{{ counters.scannedPages.other }}</td>
+                    </tr>
+                    <tr class="border-t border-gray-300 dark:border-gray-700 font-semibold">
+                        <td class="pt-1">Total</td>
+                        <td class="pt-1 text-right">{{ counters.scannedPages.total }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Duplex -->
+            <table class="w-full col-span-2">
+                 <thead>
+                    <tr class="text-left">
+                        <th class="pb-2">Duplex</th>
+                        <th class="pb-2">Uma face</th>
+                        <th class="pb-2">2 em 1</th>
+                        <th class="pb-2">4 em 1</th>
+                        <th class="pb-2 text-right">1 em 1</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="font-semibold">
+                        <td>{{ counters.duplex.duplex }}</td>
+                        <td>{{ counters.duplex.simplex }}</td>
+                        <td>{{ counters.duplex.twoInOne }}</td>
+                        <td>{{ counters.duplex.fourInOne }}</td>
+                        <td class="text-right">{{ counters.duplex.oneInOne }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+  } @else if(selectedPrinterId()) {
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 text-center text-gray-500 dark:text-gray-400">
+        <p>Não foram encontrados dados de contadores para a impressora selecionada.</p>
+    </div>
+  } @else {
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 text-center text-gray-500 dark:text-gray-400">
+        <p>Por favor, selecione uma impressora para visualizar seus contadores.</p>
+    </div>
+  }
+</div>

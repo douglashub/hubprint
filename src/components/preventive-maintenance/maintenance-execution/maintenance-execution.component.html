@@ -1,0 +1,219 @@
+<div class="container mx-auto">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-3xl font-bold text-gray-800 dark:text-white">Plano de Manutenção Preventiva</h2>
+    <button (click)="goBack()" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+      Voltar à Agenda
+    </button>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-lg shadow-md max-w-5xl mx-auto">
+    <form [formGroup]="maintenanceForm">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4 pb-4 border-b dark:border-gray-700">
+        <h3 class="text-xl font-bold text-primary-700 dark:text-primary-400">ALUCOM SOLUÇÕES TECNOLÓGICAS</h3>
+        <div class="text-right">
+            <p class="font-semibold text-gray-800 dark:text-white">PLANO DE MANUTENÇÃO</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">EM EQUIPAMENTOS</p>
+        </div>
+      </div>
+      
+      <!-- Info Boxes -->
+      <div [class.opacity-70]="maintenanceForm.disabled">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 text-sm">
+            <div class="p-2 border rounded dark:border-gray-600">
+                <label class="block text-xs font-medium text-gray-500">Data e Hora</label>
+                <p class="font-semibold">{{ maintenanceForm.get('date')?.value | date:'dd/MM/yyyy' }} {{ maintenanceForm.get('time')?.value }}</p>
+            </div>
+            <div class="p-2 border rounded dark:border-gray-600">
+                <label class="block text-xs font-medium text-gray-500">Patrimônio</label>
+                <p class="font-semibold">{{ maintenanceForm.get('assetNumber')?.value }}</p>
+            </div>
+            <div class="p-2 border rounded dark:border-gray-600">
+                <label for="printerId" class="block text-xs font-medium text-gray-500">Equipamento</label>
+                @if (printersForSchedule().length > 1) {
+                  <select id="printerId" formControlName="printerId" class="font-semibold bg-transparent w-full focus:ring-0 border-0 p-0 -ml-1 disabled:bg-transparent disabled:text-gray-900 dark:disabled:text-white disabled:opacity-100 disabled:cursor-default">
+                    @for(p of printersForSchedule(); track p.id) {
+                      <option [value]="p.id">{{ p.model }} ({{ p.asset_number }})</option>
+                    }
+                  </select>
+                } @else {
+                   <p class="font-semibold">{{ maintenanceForm.get('equipmentModel')?.value }}</p>
+                }
+            </div>
+             <div class="p-2 border rounded dark:border-gray-600">
+                <label class="block text-xs font-medium text-gray-500">Cidade</label>
+                <p class="font-semibold">{{ maintenanceForm.get('city')?.value }}</p>
+            </div>
+            <div class="sm:col-span-2 lg:col-span-4 p-2 border rounded dark:border-gray-600">
+                <label class="block text-xs font-medium text-gray-500">Cliente</label>
+                <p class="font-semibold">{{ maintenanceForm.get('clientName')?.value }}</p>
+            </div>
+        </div>
+
+        <!-- Checklist -->
+        <div class="mb-6" formArrayName="checklist">
+          <div class="overflow-x-auto border dark:border-gray-700 rounded-lg">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+              <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                  <th scope="col" class="px-4 py-3">Item</th>
+                  <th scope="col" class="px-2 py-3 text-center w-16">OK</th>
+                  <th scope="col" class="px-2 py-3 text-center w-20">Pendente</th>
+                  <th scope="col" class="px-2 py-3 text-center w-16">N/A</th>
+                  <th scope="col" class="px-4 py-3">Observações</th>
+                </tr>
+                 <tr class="bg-gray-100 dark:bg-gray-800">
+                    <td class="px-4 py-2 text-sm font-medium">Marcar todos como:</td>
+                    <td class="px-2 py-2 text-center">
+                        <input type="radio" value="OK" [formControl]="bulkStatusControl" class="w-4 h-4 text-primary-600 cursor-pointer focus:ring-primary-500">
+                    </td>
+                    <td class="px-2 py-2 text-center">
+                        <input type="radio" value="PENDENTE" [formControl]="bulkStatusControl" class="w-4 h-4 text-primary-600 cursor-pointer focus:ring-primary-500">
+                    </td>
+                    <td class="px-2 py-2 text-center">
+                        <input type="radio" value="N/A" [formControl]="bulkStatusControl" class="w-4 h-4 text-primary-600 cursor-pointer focus:ring-primary-500">
+                    </td>
+                    <td class="px-4 py-2"></td>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of checklist.controls; track $index) {
+                  <tr [formGroupName]="$index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <td class="px-4 py-2 font-medium text-gray-900 dark:text-white whitespace-nowrap">{{ item.get('name')?.value }}</td>
+                    <td class="px-2 py-2 text-center"><input type="radio" [formControlName]="'status'" value="OK" class="w-4 h-4 text-primary-600"></td>
+                    <td class="px-2 py-2 text-center"><input type="radio" [formControlName]="'status'" value="PENDENTE" class="w-4 h-4 text-primary-600"></td>
+                    <td class="px-2 py-2 text-center"><input type="radio" [formControlName]="'status'" value="N/A" class="w-4 h-4 text-primary-600"></td>
+                    <td class="px-4 py-2"><input type="text" [formControlName]="'observation'" placeholder="..." class="w-full bg-transparent border-b border-gray-300 dark:border-gray-600 focus:ring-0 focus:border-primary-500 p-1"></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+           @if (maintenanceForm.get('checklist')?.invalid && maintenanceForm.get('checklist')?.touched) {
+            <p class="text-xs text-red-500 mt-1">É necessário preencher o status de todos os itens do checklist.</p>
+          }
+        </div>
+
+        <!-- Signatures & Recommendations -->
+        <div class="space-y-6">
+            <div>
+                <label class="block mb-1 text-sm font-medium">Assinatura do Cliente</label>
+                <div class="h-10 border-b border-gray-400 dark:border-gray-500"></div>
+            </div>
+             <div class="p-4 border rounded-lg dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50">
+                <p class="text-center text-sm font-semibold mb-3 text-gray-600 dark:text-gray-300">ÁREA DESTINADA AO RESPONSÁVEL TÉCNICO</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-1 text-sm font-medium">Técnico</label>
+                        <input type="text" [value]="maintenanceForm.get('technicianName')?.value" readonly class="bg-gray-200 border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label for="technicianSignature" class="block mb-1 text-sm font-medium">Assinatura</label>
+                        <div class="h-10 border-b border-gray-400 dark:border-gray-500"></div>
+                    </div>
+                </div>
+            </div>
+             <div>
+                <label for="recommendations" class="block mb-1 text-sm font-medium">Recomendações / Ações Corretivas</label>
+                <textarea id="recommendations" formControlName="recommendations" rows="3" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></textarea>
+            </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row justify-end items-center gap-4 pt-6 mt-6 border-t dark:border-gray-700">
+        @if (areAllPrintersServiced()) {
+          <div class="flex items-center gap-2 text-green-600 font-semibold bg-green-100 dark:bg-green-900/50 dark:text-green-300 rounded-lg px-5 py-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span>Manutenção de todos os equipamentos finalizada.</span>
+          </div>
+           <div class="relative">
+                <button (click)="isPageExportDropdownOpen.set(!isPageExportDropdownOpen())" type="button" class="w-full sm:w-auto inline-flex justify-center items-center text-white bg-primary-600 hover:bg-primary-700 font-medium rounded-lg text-sm px-5 py-2.5">
+                    Gerar Relatório Consolidado
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                @if (isPageExportDropdownOpen()) {
+                    <div class="absolute bottom-full right-0 mb-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-gray-700 z-10">
+                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                            <a (click)="generateReportAndSave('pdf')" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" role="menuitem">Exportar como PDF</a>
+                            <a (click)="generateReportAndSave('doc')" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" role="menuitem">Exportar como DOC</a>
+                            <a (click)="generateReportAndSave('xls')" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" role="menuitem">Exportar como XLS</a>
+                            <a (click)="generateReportAndSave('xml')" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" role="menuitem">Exportar como XML</a>
+                            <a (click)="generateReportAndSave('txt')" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" role="menuitem">Exportar como TXT</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        } @else {
+          <button type="button" (click)="finalizeMaintenance()" [disabled]="isFinalized()" class="w-full sm:w-auto text-white bg-green-600 hover:bg-green-700 font-medium rounded-lg text-sm px-5 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+             @if(isFinalized()) {
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                Equipamento Finalizado
+             } @else {
+                Finalizar Manutenção do Equipamento
+             }
+          </button>
+        }
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Report Preview Modal -->
+<app-modal [isOpen]="isReportPreviewModalOpen()" title="Pré-visualização do Relatório" (closeModal)="isReportPreviewModalOpen.set(false)">
+  @if(maintenanceForm.valid) {
+    <div>
+        <h4 class="text-lg font-semibold mb-3 text-gray-800 dark:text-white">Confirme os dados antes de gerar</h4>
+        <div class="space-y-3 text-sm bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Cliente:</span>
+            <span class="font-semibold">{{ maintenanceForm.get('clientName')?.value }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Equipamento (último):</span>
+            <span class="font-semibold">{{ maintenanceForm.get('equipmentModel')?.value }} ({{ maintenanceForm.get('assetNumber')?.value }})</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Data:</span>
+            <span class="font-semibold">{{ maintenanceForm.get('date')?.value | date:'dd/MM/yyyy' }} às {{ maintenanceForm.get('time')?.value }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Técnico:</span>
+            <span class="font-semibold">{{ maintenanceForm.get('technicianName')?.value }}</span>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-4">
+          @if (areAllPrintersServiced()) {
+            Todas as manutenções foram concluídas. Selecione o formato para gerar um relatório consolidado com todos os equipamentos.
+          } @else {
+            Selecione o formato desejado para o relatório.
+          }
+        </p>
+    </div>
+    <div class="flex flex-col sm:flex-row justify-end pt-6 space-y-2 sm:space-y-0 sm:space-x-3">
+        <button type="button" (click)="isReportPreviewModalOpen.set(false)" class="text-gray-900 bg-white border border-gray-300 rounded-lg px-5 py-2.5">Cancelar</button>
+        <div class="relative">
+            <button (click)="isExportDropdownOpen.set(!isExportDropdownOpen())" type="button" class="w-full sm:w-auto inline-flex justify-center items-center text-white bg-primary-600 hover:bg-primary-700 font-medium rounded-lg text-sm px-5 py-2.5">
+                Gerar Relatório
+                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            @if (isExportDropdownOpen()) {
+                <div class="absolute bottom-full right-0 mb-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-gray-700 z-10">
+                    <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                        <a (click)="generateReportAndSave('pdf')" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" role="menuitem">Exportar como PDF</a>
+                        <a (click)="generateReportAndSave('doc')" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" role="menuitem">Exportar como DOC</a>
+                        <a (click)="generateReportAndSave('xls')" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" role="menuitem">Exportar como XLS</a>
+                        <a (click)="generateReportAndSave('xml')" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" role="menuitem">Exportar como XML</a>
+                        <a (click)="generateReportAndSave('txt')" class="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" role="menuitem">Exportar como TXT</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+  }
+</app-modal>

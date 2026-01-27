@@ -1,0 +1,14 @@
+
+<div class="fixed top-5 right-5 z-50 space-y-3">
+  @for (notification of notifications(); track notification.id) {
+    <div 
+      [class]="'relative w-80 rounded-md shadow-lg text-white text-sm p-4 ' + notificationColor()(notification.type)">
+      <p>{{ notification.message }}</p>
+      <button (click)="dismiss(notification.id)" class="absolute top-1 right-1 p-1 text-white hover:bg-white/20 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  }
+</div>

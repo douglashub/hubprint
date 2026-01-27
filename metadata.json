@@ -1,0 +1,7 @@
+{
+  "name": "PrintControl SaaS",
+  "description": "A modern SaaS for print management, monitoring, and auditing. Track usage, control costs, and generate insightful reports for your business.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

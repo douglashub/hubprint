@@ -1,0 +1,152 @@
+
+<form [formGroup]="printerForm" (ngSubmit)="onSubmit()" class="space-y-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <label for="location" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Localização <span class="text-red-500">*</span></label>
+      <input type="text" id="location" formControlName="location" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500" required>
+       @if (printerForm.get('location')?.invalid && (printerForm.get('location')?.dirty || printerForm.get('location')?.touched)) {
+        <p class="mt-1 text-xs text-red-500">Localização é obrigatória.</p>
+      }
+    </div>
+    <div>
+      <label for="sector" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Setor <span class="text-red-500">*</span></label>
+      <input type="text" id="sector" formControlName="sector" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500" required>
+       @if (printerForm.get('sector')?.invalid && (printerForm.get('sector')?.dirty || printerForm.get('sector')?.touched)) {
+        <p class="mt-1 text-xs text-red-500">Setor é obrigatório.</p>
+      }
+    </div>
+  </div>
+
+  <div>
+    <label for="client_id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cliente (Opcional)</label>
+    <select id="client_id" formControlName="client_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500">
+      <option value="">Nenhum (Uso Interno)</option>
+      @for(client of clients(); track client.id) {
+        <option [value]="client.id">{{ client.trade_name }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div>
+      <label for="asset_number" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Patrimônio <span class="text-red-500">*</span></label>
+      <input type="text" id="asset_number" formControlName="asset_number" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500" required>
+       @if (printerForm.get('asset_number')?.invalid && (printerForm.get('asset_number')?.dirty || printerForm.get('asset_number')?.touched)) {
+        <p class="mt-1 text-xs text-red-500">Patrimônio é obrigatório.</p>
+      }
+    </div>
+    <div>
+      <label for="model" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Modelo <span class="text-red-500">*</span></label>
+      <input type="text" id="model" formControlName="model" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500" required>
+       @if (printerForm.get('model')?.invalid && (printerForm.get('model')?.dirty || printerForm.get('model')?.touched)) {
+        <p class="mt-1 text-xs text-red-500">Modelo é obrigatório.</p>
+      }
+    </div>
+    <div>
+      <label for="serial_number" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">N° de Série <span class="text-red-500">*</span></label>
+      <input type="text" id="serial_number" formControlName="serial_number" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500" required>
+       @if (printerForm.get('serial_number')?.invalid && (printerForm.get('serial_number')?.dirty || printerForm.get('serial_number')?.touched)) {
+        <p class="mt-1 text-xs text-red-500">N° de Série é obrigatório.</p>
+      }
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <label for="ip_address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Endereço IP <span class="text-red-500">*</span></label>
+      <input type="text" id="ip_address" formControlName="ip_address" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500" required>
+       @if (printerForm.get('ip_address')?.invalid && (printerForm.get('ip_address')?.dirty || printerForm.get('ip_address')?.touched)) {
+        @if(printerForm.get('ip_address')?.hasError('required')) {
+          <p class="mt-1 text-xs text-red-500">Endereço IP é obrigatório.</p>
+        }
+        @if(printerForm.get('ip_address')?.hasError('pattern')) {
+          <p class="mt-1 text-xs text-red-500">Formato de IP inválido (ex: 192.168.0.1).</p>
+        }
+      }
+    </div>
+    <div>
+      <label for="mac_address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">MAC Address <span class="text-red-500">*</span></label>
+      <input type="text" id="mac_address" formControlName="mac_address" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500" required>
+       @if (printerForm.get('mac_address')?.invalid && (printerForm.get('mac_address')?.dirty || printerForm.get('mac_address')?.touched)) {
+        <p class="mt-1 text-xs text-red-500">MAC Address é obrigatório.</p>
+      }
+    </div>
+  </div>
+  
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <label for="queue" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Fila de Impressão</label>
+      <input type="text" id="queue" formControlName="queue" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500">
+    </div>
+     <div>
+      <label for="technician" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Técnico</label>
+      <select id="technician" formControlName="technician" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500">
+        <option value="">Selecione um técnico</option>
+        @for(tech of technicians(); track tech) {
+            <option [value]="tech">{{ tech }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div>
+      <label for="installation_date" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Data de Instalação <span class="text-red-500">*</span></label>
+      <input type="date" id="installation_date" formControlName="installation_date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500" required>
+       @if (printerForm.get('installation_date')?.invalid && (printerForm.get('installation_date')?.dirty || printerForm.get('installation_date')?.touched)) {
+        <p class="mt-1 text-xs text-red-500">Data de Instalação é obrigatória.</p>
+      }
+    </div>
+    <div>
+      <label for="transformer_number" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">N° Transformador</label>
+      <input type="text" id="transformer_number" formControlName="transformer_number" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500">
+    </div>
+    <div>
+      <label for="installation_status" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status <span class="text-red-500">*</span></label>
+      <select id="installation_status" formControlName="installation_status" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500">
+        <option value="OK">OK</option>
+        <option value="Pendente">Pendente</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="pt-4 space-y-2">
+    <p class="text-sm font-medium text-gray-900 dark:text-white">Recursos Adicionais</p>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="flex items-center">
+            <input id="adf_processor" type="checkbox" formControlName="adf_processor" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
+            <label for="adf_processor" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">ADF</label>
+        </div>
+        <div class="flex items-center">
+            <input id="ak_748" type="checkbox" formControlName="ak_748" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
+            <label for="ak_748" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">AK-748</label>
+        </div>
+        <div class="flex items-center">
+            <input id="finisher" type="checkbox" formControlName="finisher" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
+            <label for="finisher" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Finalizador</label>
+        </div>
+        <div class="flex items-center">
+            <input id="cabinet" type="checkbox" formControlName="cabinet" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
+            <label for="cabinet" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Gabinete</label>
+        </div>
+        <div class="flex items-center">
+            <input id="nst_nd" type="checkbox" formControlName="nst_nd" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
+            <label for="nst_nd" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">NST. ND</label>
+        </div>
+        <div class="flex items-center">
+            <input id="inst_ocr" type="checkbox" formControlName="inst_ocr" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500">
+            <label for="inst_ocr" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">INST. OCR</label>
+        </div>
+    </div>
+  </div>
+
+
+  <div class="flex justify-end pt-4 space-x-2">
+    <button type="button" (click)="onCancel()" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">
+      Cancelar
+    </button>
+    <button type="submit" [disabled]="printerForm.invalid" class="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 disabled:bg-primary-400 disabled:cursor-not-allowed dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+      Salvar
+    </button>
+  </div>
+</form>
