@@ -1,4 +1,5 @@
-<aside class="w-64 bg-primary-800 text-white flex-col flex-shrink-0 transition-transform duration-300 ease-in-out z-40"
+<aside
+  class="w-64 bg-primary-800 text-white flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out z-40"
   [class]="isSidebarOpen() ? 'translate-x-0' : '-translate-x-full'" [class.fixed]="true" [class.h-full]="true"
   [class.md:relative]="true" [class.md:translate-x-0]="true">
   <div class="h-16 flex items-center justify-between px-4 border-b border-primary-700">
@@ -27,7 +28,7 @@
       <span class="w-6 text-center mr-3">P</span>
       <span>Meu Perfil</span>
     </a>
-    <div class="mt-4 px-4 text-xs text-primary-300 font-mono">
+    <div class="mt-4 flex justify-center text-xs text-primary-300 font-mono opacity-75">
       {{ appVersion }}
     </div>
   </div>
