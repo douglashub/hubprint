@@ -1,5 +1,5 @@
 
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -33,14 +33,24 @@ export class AppComponent {
 
   private navigationEndSignal = toSignal(this.routerEvents$);
 
+  publicRoutes = ['/login', '/register', '/forgot-password'];
+
+  shouldShowSidebar = computed(() => {
+    const isAuthenticated = this.isAuthenticated();
+    // We need to react to navigation changes. 
+    // Since navigationEndSignal captures the event, we can use it to assume URL might have changed.
+    this.navigationEndSignal();
+    const currentUrl = this.router.url.split('?')[0];
+    return isAuthenticated && !this.publicRoutes.includes(currentUrl);
+  });
+
   constructor() {
-    const publicRoutes = ['/login', '/register', '/forgot-password'];
     effect(() => {
       const event = this.navigationEndSignal();
       // On successful navigation, check if the user should be redirected.
       if (event instanceof NavigationEnd) {
         // If user is not authenticated and the route is not a public one, redirect to login.
-        if (!this.isAuthenticated() && !publicRoutes.includes(event.url)) {
+        if (!this.isAuthenticated() && !this.publicRoutes.includes(event.urlAfterRedirects.split('?')[0])) {
           this.router.navigate(['/login']);
         }
       }

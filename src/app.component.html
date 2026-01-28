@@ -1,23 +1,22 @@
-
 <div class="h-screen w-full text-gray-800 dark:text-gray-200 overflow-x-hidden">
-  @if (isAuthenticated()) {
-    <div class="flex h-full">
-      <app-sidebar></app-sidebar>
-      <div class="flex-1 flex flex-col overflow-hidden">
-        <app-header></app-header>
-        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-800 p-4 sm:p-6 md:p-8">
-          <router-outlet></router-outlet>
-        </main>
-      </div>
+  @if (shouldShowSidebar()) {
+  <div class="flex h-full">
+    <app-sidebar></app-sidebar>
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <app-header></app-header>
+      <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-800 p-4 sm:p-6 md:p-8">
+        <router-outlet></router-outlet>
+      </main>
     </div>
-    
-    <!-- Mobile Sidebar Overlay -->
-    @if(isSidebarOpen()) {
-        <div (click)="uiStateService.closeSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"></div>
-    }
+  </div>
+
+  <!-- Mobile Sidebar Overlay -->
+  @if(isSidebarOpen()) {
+  <div (click)="uiStateService.closeSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"></div>
+  }
 
   } @else {
-    <router-outlet></router-outlet>
+  <router-outlet></router-outlet>
   }
   <app-notification></app-notification>
 </div>
