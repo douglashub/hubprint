@@ -14,6 +14,7 @@ export class SidebarComponent {
   uiStateService = inject(UiStateService);
   isSidebarOpen = this.uiStateService.isSidebarOpen;
   router = inject(Router)
+  appVersion = 'v0.9.0';
 
   navLinks = [
     { path: '/dashboard', icon: 'home', label: 'Dashboard' },
@@ -26,7 +27,7 @@ export class SidebarComponent {
 
   onNavLinkClick(): void {
     if (window.innerWidth < 768) { // md breakpoint
-        this.uiStateService.closeSidebar();
+      this.uiStateService.closeSidebar();
     }
   }
 }
