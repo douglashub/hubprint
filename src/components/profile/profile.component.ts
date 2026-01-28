@@ -32,7 +32,7 @@ export class ProfileComponent {
 
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
-  
+
   profileForm = this.fb.group({
     full_name: ['', Validators.required],
     email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
@@ -49,7 +49,7 @@ export class ProfileComponent {
     company_profile: this.fb.group({
       isCompanyProfileActive: [false],
       name: [''],
-      taxIdType: ['cnpj' as 'cpf' | 'cnpj'],
+      taxIdType: ['cnpj'],
       taxId: [''],
       tradeName: [''],
       email: ['', [Validators.email]],
@@ -75,19 +75,19 @@ export class ProfileComponent {
 
   constructor() {
     this.profileForm.get('address.zip')?.valueChanges.subscribe(zip => {
-       if (zip && zip.replace(/\D/g, '').length === 8) this.onCepChange(zip.replace(/\D/g, ''), 'address');
+      if (zip && zip.replace(/\D/g, '').length === 8) this.onCepChange(zip.replace(/\D/g, ''), 'address');
     });
 
-   const companyForm = this.profileForm.get('company_profile') as FormGroup;
-   const companyAddressForm = companyForm.get('address') as FormGroup;
+    const companyForm = this.profileForm.get('company_profile') as FormGroup;
+    const companyAddressForm = companyForm.get('address') as FormGroup;
 
-   companyAddressForm.get('zip')?.valueChanges.subscribe(zip => {
-     if (zip && zip.replace(/\D/g, '').length === 8 && !companyAddressForm.get('useUserAddress')?.value) this.onCepChange(zip.replace(/\D/g, ''), 'company_profile.address');
-   });
-   
-   companyForm.get('isCompanyProfileActive')?.valueChanges.subscribe(isActive => this.updateCompanySectionState(isActive, companyForm.get('taxIdType')?.value, companyAddressForm.get('useUserAddress')?.value));
-   companyForm.get('taxIdType')?.valueChanges.subscribe(type => this.updateTradeNameState(type));
-   companyAddressForm.get('useUserAddress')?.valueChanges.subscribe(useUserAddress => {
+    companyAddressForm.get('zip')?.valueChanges.subscribe(zip => {
+      if (zip && zip.replace(/\D/g, '').length === 8 && !companyAddressForm.get('useUserAddress')?.value) this.onCepChange(zip.replace(/\D/g, ''), 'company_profile.address');
+    });
+
+    companyForm.get('isCompanyProfileActive')?.valueChanges.subscribe(isActive => this.updateCompanySectionState(isActive, companyForm.get('taxIdType')?.value, companyAddressForm.get('useUserAddress')?.value));
+
+    companyAddressForm.get('useUserAddress')?.valueChanges.subscribe(useUserAddress => {
       this.updateCompanyAddressState(useUserAddress);
       // FIX: Use `getRawValue()` to ensure the full address object, including the 'zip'
       // property, is passed to `patchValue`. This resolves a TypeScript error where
@@ -95,38 +95,38 @@ export class ProfileComponent {
       if (useUserAddress) {
         companyAddressForm.patchValue(this.profileForm.get('address')?.getRawValue() || {});
       }
-   });
+    });
 
     effect(() => {
-        const stream = this.cameraStream();
-        const video = this.videoElement?.nativeElement;
-        if (stream && video) {
-            video.srcObject = stream;
-        }
+      const stream = this.cameraStream();
+      const video = this.videoElement?.nativeElement;
+      if (stream && video) {
+        video.srcObject = stream;
+      }
     });
   }
 
   private updateCompanySectionState(isActive: boolean, taxIdType: string, useUserAddress: boolean): void {
-      const companyForm = this.profileForm.get('company_profile') as FormGroup;
-      const fieldsToToggle = ['name', 'taxIdType', 'taxId', 'email', 'phone', 'stateRegistration', 'municipalRegistration', 'address'];
-      fieldsToToggle.forEach(field => isActive ? companyForm.get(field)?.enable() : companyForm.get(field)?.disable());
-      if(isActive) {
-        this.updateTradeNameState(taxIdType);
-        this.updateCompanyAddressState(useUserAddress);
-      }
+    const companyForm = this.profileForm.get('company_profile') as FormGroup;
+    const fieldsToToggle = ['name', 'taxIdType', 'taxId', 'email', 'phone', 'stateRegistration', 'municipalRegistration', 'address'];
+    fieldsToToggle.forEach(field => isActive ? companyForm.get(field)?.enable() : companyForm.get(field)?.disable());
+    if (isActive) {
+      this.updateTradeNameState();
+      this.updateCompanyAddressState(useUserAddress);
+    }
   }
 
-  private updateTradeNameState(type: string | null | undefined): void {
-      const tradeNameControl = this.profileForm.get('company_profile.tradeName');
-      if (type === 'cnpj' && this.profileForm.get('company_profile.isCompanyProfileActive')?.value) tradeNameControl?.enable();
-      else tradeNameControl?.disable();
+  private updateTradeNameState(): void {
+    const tradeNameControl = this.profileForm.get('company_profile.tradeName');
+    if (this.profileForm.get('company_profile.isCompanyProfileActive')?.value) tradeNameControl?.enable();
+    else tradeNameControl?.disable();
   }
 
   private updateCompanyAddressState(useUserAddress: boolean | null | undefined): void {
-      const companyAddressForm = this.profileForm.get('company_profile.address') as FormGroup;
-      const addressControls = ['street', 'number', 'neighborhood', 'city', 'state', 'zip'];
-      if (useUserAddress) addressControls.forEach(c => companyAddressForm.get(c)?.disable());
-      else if (this.profileForm.get('company_profile.isCompanyProfileActive')?.value) addressControls.forEach(c => companyAddressForm.get(c)?.enable());
+    const companyAddressForm = this.profileForm.get('company_profile.address') as FormGroup;
+    const addressControls = ['street', 'number', 'neighborhood', 'city', 'state', 'zip'];
+    if (useUserAddress) addressControls.forEach(c => companyAddressForm.get(c)?.disable());
+    else if (this.profileForm.get('company_profile.isCompanyProfileActive')?.value) addressControls.forEach(c => companyAddressForm.get(c)?.enable());
   }
 
   async onCepChange(cep: string, targetPath: 'address' | 'company_profile.address'): Promise<void> {
@@ -152,7 +152,7 @@ export class ProfileComponent {
   toggleEdit(): void {
     if (!this.isEditing()) {
       const currentUser = this.user();
-      if(currentUser) {
+      if (currentUser) {
         const { company_profile: company, ...userFields } = currentUser;
         this.profileForm.patchValue({ ...userFields, company_profile: company });
         const companyForm = this.profileForm.get('company_profile') as FormGroup;
@@ -168,14 +168,14 @@ export class ProfileComponent {
       this.notificationService.show('Formulário inválido. Verifique os campos.', 'error');
       return;
     }
-    await this.authService.updateCurrentUser(this.profileForm.getRawValue());
+    await this.authService.updateCurrentUser(this.profileForm.getRawValue() as any);
     this.isEditing.set(false);
   }
 
   cancelEdit(): void {
     this.isEditing.set(false);
   }
-  
+
   async onAvatarFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
@@ -203,11 +203,11 @@ export class ProfileComponent {
       const { data } = this.supabase.storage
         .from('assets')
         .getPublicUrl(filePath);
-      
+
       if (!data.publicUrl) {
-          throw new Error('Não foi possível obter a URL pública da imagem.');
+        throw new Error('Não foi possível obter a URL pública da imagem.');
       }
-      
+
       await this.authService.updateUserAvatar(data.publicUrl);
       this.isAvatarModalOpen.set(false);
     } catch (error: any) {
@@ -219,7 +219,7 @@ export class ProfileComponent {
   async onLogoFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
-    
+
     const file = input.files[0];
     if (!file.type.startsWith('image/')) {
       this.notificationService.show('Por favor, selecione um arquivo de imagem.', 'error');
@@ -245,9 +245,9 @@ export class ProfileComponent {
         .getPublicUrl(filePath);
 
       if (!data.publicUrl) {
-          throw new Error('Não foi possível obter a URL pública da imagem.');
+        throw new Error('Não foi possível obter a URL pública da imagem.');
       }
-      
+
       this.profileForm.get('company_profile.logoUrl')?.setValue(data.publicUrl);
       this.notificationService.show('Pré-visualização do logo atualizada!', 'success');
     } catch (error: any) {
@@ -259,14 +259,14 @@ export class ProfileComponent {
   async startCamera(): Promise<void> {
     this.isAvatarModalOpen.set(false);
     this.isCameraModalOpen.set(true);
-    
+
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        this.cameraStream.set(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      this.cameraStream.set(stream);
     } catch (err) {
-        console.error('Error accessing camera:', err);
-        this.notificationService.show('Não foi possível acessar a câmera. Verifique as permissões no seu navegador.', 'error', 5000);
-        this.isCameraModalOpen.set(false);
+      console.error('Error accessing camera:', err);
+      this.notificationService.show('Não foi possível acessar a câmera. Verifique as permissões no seu navegador.', 'error', 5000);
+      this.isCameraModalOpen.set(false);
     }
   }
 
@@ -279,7 +279,7 @@ export class ProfileComponent {
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
     while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
+      u8arr[n] = bstr.charCodeAt(n);
     }
     return new File([u8arr], filename, { type: mime });
   }
@@ -304,54 +304,54 @@ export class ProfileComponent {
     this.stopCamera();
 
     try {
-        this.notificationService.show('Enviando imagem...', 'info', 10000);
-        const filePath = `${currentUser.id}/avatar-${Date.now()}.png`;
+      this.notificationService.show('Enviando imagem...', 'info', 10000);
+      const filePath = `${currentUser.id}/avatar-${Date.now()}.png`;
 
-        const { error } = await this.supabase.storage
-            .from('assets')
-            .upload(filePath, file, { upsert: true });
+      const { error } = await this.supabase.storage
+        .from('assets')
+        .upload(filePath, file, { upsert: true });
 
-        if (error) throw error;
-        
-        const { data } = this.supabase.storage
-            .from('assets')
-            .getPublicUrl(filePath);
+      if (error) throw error;
 
-        if (!data.publicUrl) {
-          throw new Error('Não foi possível obter a URL pública da imagem.');
-        }
+      const { data } = this.supabase.storage
+        .from('assets')
+        .getPublicUrl(filePath);
 
-        await this.authService.updateUserAvatar(data.publicUrl);
+      if (!data.publicUrl) {
+        throw new Error('Não foi possível obter a URL pública da imagem.');
+      }
+
+      await this.authService.updateUserAvatar(data.publicUrl);
     } catch (error: any) {
-        console.error('Error uploading captured image:', error);
-        this.notificationService.show(`Erro ao enviar imagem: ${error.message}`, 'error');
+      console.error('Error uploading captured image:', error);
+      this.notificationService.show(`Erro ao enviar imagem: ${error.message}`, 'error');
     }
   }
-  
+
   stopCamera(): void {
     const stream = this.cameraStream();
     if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach(track => track.stop());
     }
     this.cameraStream.set(null);
     this.isCameraModalOpen.set(false);
   }
-  
+
   openPinModal(): void {
     this.pinForm.reset();
     this.isPinModalOpen.set(true);
   }
 
   async savePin(): Promise<void> {
-    if(this.pinForm.invalid){
+    if (this.pinForm.invalid) {
       this.notificationService.show('PIN inválido. Deve conter 4 dígitos.', 'error');
       return;
     }
     const newPin = this.pinForm.get('newPin')?.value;
-    if(newPin) {
-        await this.authService.updateCurrentUserPin(newPin);
-        this.notificationService.show('PIN atualizado com sucesso!', 'success');
-        this.isPinModalOpen.set(false);
+    if (newPin) {
+      await this.authService.updateCurrentUserPin(newPin);
+      this.notificationService.show('PIN atualizado com sucesso!', 'success');
+      this.isPinModalOpen.set(false);
     }
   }
 }

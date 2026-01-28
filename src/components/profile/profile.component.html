@@ -2,168 +2,291 @@
   <div class="flex flex-col sm:flex-row justify-between items-center">
     <h2 class="text-3xl font-bold text-gray-800 dark:text-white">Meu Perfil</h2>
     @if (!isEditing()) {
-      <button (click)="toggleEdit()" class="bg-primary-600 text-white px-5 py-2.5 rounded-lg hover:bg-primary-700 transition w-full sm:w-auto mt-4 sm:mt-0">
-        Editar Perfil
-      </button>
+    <button (click)="toggleEdit()"
+      class="bg-primary-600 text-white px-5 py-2.5 rounded-lg hover:bg-primary-700 transition w-full sm:w-auto mt-4 sm:mt-0">
+      Editar Perfil
+    </button>
     }
   </div>
 
-<form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-  @if (user(); as currentUser) {
+  <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+    @if (user(); as currentUser) {
     <!-- User Profile Card -->
     <div class="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-md max-w-4xl mx-auto">
       <div class="flex flex-col sm:flex-row items-center space-y-6 sm:space-y-0 sm:space-x-6 mb-8">
         <div class="relative group">
           <img class="h-24 w-24 rounded-full object-cover" [src]="currentUser.avatar_url" [alt]="currentUser.full_name">
-           <button (click)="isAvatarModalOpen.set(true)" type="button" class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-center justify-center rounded-full transition-opacity duration-300">
-                <svg class="w-8 h-8 text-white opacity-0 group-hover:opacity-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.776 48.776 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" /></svg>
-            </button>
+          <button (click)="isAvatarModalOpen.set(true)" type="button"
+            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-center justify-center rounded-full transition-opacity duration-300">
+            <svg class="w-8 h-8 text-white opacity-0 group-hover:opacity-100" xmlns="http://www.w3.org/2000/svg"
+              fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.776 48.776 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+            </svg>
+          </button>
         </div>
         <div>
-          <h3 class="text-2xl text-center sm:text-left font-semibold text-gray-900 dark:text-white">{{ currentUser.full_name }}</h3>
-          <p class="text-gray-500 dark:text-gray-400 text-center sm:text-left">{{ currentUser.role === 'company_admin' ? 'Administrador da Empresa' : 'Usuário' }}</p>
+          <h3 class="text-2xl text-center sm:text-left font-semibold text-gray-900 dark:text-white">{{
+            currentUser.full_name }}</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-center sm:text-left">{{ currentUser.role === 'company_admin' ?
+            'Administrador da Empresa' : 'Usuário' }}</p>
         </div>
       </div>
-      
+
       @if (!isEditing()) {
-        <!-- User View Mode -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          <div><label class="text-sm font-medium text-gray-500">Nome Completo</label><p class="mt-1 text-lg">{{ currentUser.full_name }}</p></div>
-          <div><label class="text-sm font-medium text-gray-500">E-mail</label><p class="mt-1 text-lg">{{ currentUser.email }}</p></div>
-          <div><label class="text-sm font-medium text-gray-500">CPF</label><p class="mt-1 text-lg">{{ currentUser.cpf || 'Não informado' }}</p></div>
-          <div><label class="text-sm font-medium text-gray-500">Telefone</label><p class="mt-1 text-lg">{{ currentUser.phone || 'Não informado' }}</p></div>
-          <div class="md:col-span-2">
-            <label class="text-sm font-medium text-gray-500">Endereço</label>
-            <p class="mt-1 text-lg">
-              @if(currentUser.address?.street) {
-                {{ currentUser.address.street }}, {{ currentUser.address.number }} - {{ currentUser.address.neighborhood }}, {{ currentUser.address.city }} - {{ currentUser.address.state }}
-              } @else {
-                Não informado
-              }
-            </p>
-          </div>
-          <div class="md:col-span-2"><label class="text-sm font-medium text-gray-500">PIN de Impressão</label><div class="flex items-center space-x-4"><p class="mt-1 text-lg">{{ currentUser.pin ? '****' : 'Não definido' }}</p><button (click)="openPinModal()" type="button" class="text-sm text-primary-600 hover:underline">Alterar PIN</button></div></div>
+      <!-- User View Mode -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+        <div><label class="text-sm font-medium text-gray-500">Nome Completo</label>
+          <p class="mt-1 text-lg">{{ currentUser.full_name }}</p>
         </div>
+        <div><label class="text-sm font-medium text-gray-500">E-mail</label>
+          <p class="mt-1 text-lg">{{ currentUser.email }}</p>
+        </div>
+        <div><label class="text-sm font-medium text-gray-500">CPF</label>
+          <p class="mt-1 text-lg">{{ currentUser.cpf || 'Não informado' }}</p>
+        </div>
+        <div><label class="text-sm font-medium text-gray-500">Telefone</label>
+          <p class="mt-1 text-lg">{{ currentUser.phone || 'Não informado' }}</p>
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-sm font-medium text-gray-500">Endereço</label>
+          <p class="mt-1 text-lg">
+            @if(currentUser.address?.street) {
+            {{ currentUser.address.street }}, {{ currentUser.address.number }} - {{ currentUser.address.neighborhood }},
+            {{ currentUser.address.city }} - {{ currentUser.address.state }}
+            } @else {
+            Não informado
+            }
+          </p>
+        </div>
+        <div class="md:col-span-2"><label class="text-sm font-medium text-gray-500">PIN de Impressão</label>
+          <div class="flex items-center space-x-4">
+            <p class="mt-1 text-lg">{{ currentUser.pin ? '****' : 'Não definido' }}</p><button (click)="openPinModal()"
+              type="button" class="text-sm text-primary-600 hover:underline">Alterar PIN</button>
+          </div>
+        </div>
+      </div>
       } @else {
-        <!-- User Edit Mode -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-          <div><label for="full_name" class="block mb-2 text-sm font-medium">Nome Completo</label><input type="text" id="full_name" formControlName="full_name" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-          <div><label for="email" class="block mb-2 text-sm font-medium">E-mail</label><input type="email" id="email" formControlName="email" class="bg-gray-200 border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-800 cursor-not-allowed"></div>
-          <div><label for="cpf" class="block mb-2 text-sm font-medium">CPF</label><input type="text" id="cpf" formControlName="cpf" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-          <div><label for="phone" class="block mb-2 text-sm font-medium">Telefone</label><input type="tel" id="phone" formControlName="phone" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-          <div class="md:col-span-2" formGroupName="address">
-            <p class="text-base font-medium mb-2">Endereço do Usuário</p>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 border p-4 rounded-lg dark:border-gray-700">
-                <div class="col-span-2 sm:col-span-1"><label for="zip" class="block mb-2 text-sm">CEP</label><input type="text" id="zip" formControlName="zip" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-                <div class="col-span-2"><label for="street" class="block mb-2 text-sm">Rua</label><input type="text" id="street" formControlName="street" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-                <div><label for="number" class="block mb-2 text-sm">Número</label><input type="text" id="number" formControlName="number" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-                <div class="col-span-2"><label for="neighborhood" class="block mb-2 text-sm">Bairro</label><input type="text" id="neighborhood" formControlName="neighborhood" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-                <div><label for="city" class="block mb-2 text-sm">Cidade</label><input type="text" id="city" formControlName="city" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-                <div><label for="state" class="block mb-2 text-sm">Estado</label><input type="text" id="state" formControlName="state" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-            </div>
+      <!-- User Edit Mode -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+        <div><label for="full_name" class="block mb-2 text-sm font-medium">Nome Completo</label><input type="text"
+            id="full_name" formControlName="full_name"
+            class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+        <div><label for="email" class="block mb-2 text-sm font-medium">E-mail</label><input type="email" id="email"
+            formControlName="email"
+            class="bg-gray-200 border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-800 cursor-not-allowed">
+        </div>
+        <div><label for="cpf" class="block mb-2 text-sm font-medium">CPF</label><input type="text" id="cpf"
+            formControlName="cpf"
+            class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+        <div><label for="phone" class="block mb-2 text-sm font-medium">Telefone</label><input type="tel" id="phone"
+            formControlName="phone"
+            class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+        <div class="md:col-span-2" formGroupName="address">
+          <p class="text-base font-medium mb-2">Endereço do Usuário</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 border p-4 rounded-lg dark:border-gray-700">
+            <div class="col-span-2 sm:col-span-1"><label for="zip" class="block mb-2 text-sm">CEP</label><input
+                type="text" id="zip" formControlName="zip"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+            <div class="col-span-2"><label for="street" class="block mb-2 text-sm">Rua</label><input type="text"
+                id="street" formControlName="street"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+            <div><label for="number" class="block mb-2 text-sm">Número</label><input type="text" id="number"
+                formControlName="number"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+            <div class="col-span-2"><label for="neighborhood" class="block mb-2 text-sm">Bairro</label><input
+                type="text" id="neighborhood" formControlName="neighborhood"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+            <div><label for="city" class="block mb-2 text-sm">Cidade</label><input type="text" id="city"
+                formControlName="city"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+            <div><label for="state" class="block mb-2 text-sm">Estado</label><input type="text" id="state"
+                formControlName="state"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
           </div>
         </div>
+      </div>
       }
     </div>
 
     <!-- Company Profile Card -->
     <div class="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-md max-w-4xl mx-auto" formGroupName="company_profile">
       <div class="flex justify-between items-center mb-6">
-          <h3 class="text-2xl font-semibold">Empresa</h3>
-          @if(isEditing()){
-            <div class="flex items-center space-x-2">
-              <span class="text-sm font-medium">Preencher dados da empresa?</span>
-              <div class="flex items-center space-x-4">
-                  <label class="flex items-center"><input type="radio" [value]="false" formControlName="isCompanyProfileActive" class="w-4 h-4 text-primary-600"> <span class="ml-2">Não</span></label>
-                  <label class="flex items-center"><input type="radio" [value]="true" formControlName="isCompanyProfileActive" class="w-4 h-4 text-primary-600"> <span class="ml-2">Sim</span></label>
-              </div>
-            </div>
-          }
+        <h3 class="text-2xl font-semibold">Empresa</h3>
+        @if(isEditing()){
+        <div class="flex items-center space-x-2">
+          <span class="text-sm font-medium">Preencher dados da empresa?</span>
+          <div class="flex items-center space-x-4">
+            <label class="flex items-center"><input type="radio" [value]="false"
+                formControlName="isCompanyProfileActive" class="w-4 h-4 text-primary-600"> <span
+                class="ml-2">Não</span></label>
+            <label class="flex items-center"><input type="radio" [value]="true" formControlName="isCompanyProfileActive"
+                class="w-4 h-4 text-primary-600"> <span class="ml-2">Sim</span></label>
+          </div>
+        </div>
+        }
       </div>
 
       @if (!isEditing()) {
-        <!-- Company View Mode -->
-        @if(currentUser.company_profile?.isCompanyProfileActive) {
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div class="flex items-center space-x-4 md:col-span-2">
-                @if(currentUser.company_profile?.logoUrl) { <img [src]="currentUser.company_profile.logoUrl" alt="Logo da Empresa" class="h-16 w-16 object-contain rounded-md bg-gray-100 dark:bg-gray-800"> }
-                <div><label class="text-sm font-medium text-gray-500">Razão Social</label><p class="mt-1 text-lg">{{ currentUser.company_profile?.name }}</p></div>
-            </div>
-            @if(currentUser.company_profile?.tradeName) { <div><label class="text-sm font-medium text-gray-500">Nome Fantasia</label><p class="mt-1 text-lg">{{ currentUser.company_profile.tradeName }}</p></div> }
-            <div><label class="text-sm font-medium text-gray-500">CNPJ/CPF</label><p class="mt-1 text-lg">{{ currentUser.company_profile?.taxId }}</p></div>
-            <div><label class="text-sm font-medium text-gray-500">Inscrição Estadual</label><p class="mt-1 text-lg">{{ currentUser.company_profile?.stateRegistration || 'Não informado' }}</p></div>
-            <div><label class="text-sm font-medium text-gray-500">Inscrição Municipal</label><p class="mt-1 text-lg">{{ currentUser.company_profile?.municipalRegistration || 'Não informado' }}</p></div>
-            <div><label class="text-sm font-medium text-gray-500">E-mail da Empresa</label><p class="mt-1 text-lg">{{ currentUser.company_profile?.email || 'Não informado' }}</p></div>
-            <div><label class="text-sm font-medium text-gray-500">Telefone da Empresa</label><p class="mt-1 text-lg">{{ currentUser.company_profile?.phone || 'Não informado' }}</p></div>
-            <div class="md:col-span-2">
-              <label class="text-sm font-medium text-gray-500">Endereço da Empresa</label>
-              <p class="mt-1 text-lg">
-                @if(currentUser.company_profile?.address?.street) {
-                  {{ currentUser.company_profile.address.street }}, {{ currentUser.company_profile.address.number }} - {{ currentUser.company_profile.address.neighborhood }}, {{ currentUser.company_profile.address.city }} - {{ currentUser.company_profile.address.state }}
-                } @else {
-                  Não informado
-                }
-              </p>
-            </div>
+      <!-- Company View Mode -->
+      @if(currentUser.company_profile?.isCompanyProfileActive) {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+        <div class="flex items-center space-x-4 md:col-span-2">
+          @if(currentUser.company_profile?.logoUrl) { <img [src]="currentUser.company_profile.logoUrl"
+            alt="Logo da Empresa" class="h-16 w-16 object-contain rounded-md bg-gray-100 dark:bg-gray-800"> }
+          <div><label class="text-sm font-medium text-gray-500">Razão Social</label>
+            <p class="mt-1 text-lg">{{ currentUser.company_profile?.name }}</p>
           </div>
-        } @else {
-          <p class="text-center text-gray-500">Os dados da empresa não estão preenchidos.</p>
-        }
-      } @else {
-        <!-- Company Edit Mode -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-          <div><label for="company_name" class="block mb-2 text-sm font-medium">Razão Social</label><input type="text" id="company_name" formControlName="name" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-          <div class="flex items-center space-x-4">
-              <div><label for="taxIdType" class="block mb-2 text-sm font-medium">Tipo</label><select id="taxIdType" formControlName="taxIdType" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"><option value="cnpj">CNPJ</option><option value="cpf">CPF</option></select></div>
-              <div class="flex-1"><label for="taxId" class="block mb-2 text-sm font-medium">CNPJ/CPF</label><input type="text" id="taxId" formControlName="taxId" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-          </div>
-          @if(profileForm.get('company_profile.taxIdType')?.value === 'cnpj'){<div><label for="tradeName" class="block mb-2 text-sm font-medium">Nome Fantasia</label><input type="text" id="tradeName" formControlName="tradeName" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>}
-          <div><label for="company_email" class="block mb-2 text-sm font-medium">E-mail da Empresa</label><input type="email" id="company_email" formControlName="email" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-          <div><label for="company_phone" class="block mb-2 text-sm font-medium">Telefone da Empresa</label><input type="tel" id="company_phone" formControlName="phone" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-          <div><label for="stateRegistration" class="block mb-2 text-sm font-medium">Inscrição Estadual</label><input type="text" id="stateRegistration" formControlName="stateRegistration" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-          <div><label for="municipalRegistration" class="block mb-2 text-sm font-medium">Inscrição Municipal</label><input type="text" id="municipalRegistration" formControlName="municipalRegistration" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-          <div class="md:col-span-2" formGroupName="address">
-              <div class="flex justify-between items-center mb-2"><p class="text-base font-medium">Endereço da Empresa</p>
-                <div class="flex items-center space-x-2"><span class="text-sm">Usar mesmo endereço do usuário?</span><div class="flex items-center space-x-4"><label class="flex items-center"><input type="radio" [value]="false" formControlName="useUserAddress" class="w-4 h-4 text-primary-600"><span class="ml-2">Não</span></label><label class="flex items-center"><input type="radio" [value]="true" formControlName="useUserAddress" class="w-4 h-4 text-primary-600"><span class="ml-2">Sim</span></label></div></div>
-              </div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 border p-4 rounded-lg dark:border-gray-700">
-                  <div class="col-span-2 sm:col-span-1"><label for="company_zip" class="block mb-2 text-sm">CEP</label><input type="text" id="company_zip" formControlName="zip" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-                  <div class="col-span-2"><label for="company_street" class="block mb-2 text-sm">Rua</label><input type="text" id="company_street" formControlName="street" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-                  <div><label for="company_number" class="block mb-2 text-sm">Número</label><input type="text" id="company_number" formControlName="number" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-                  <div class="col-span-2"><label for="company_neighborhood" class="block mb-2 text-sm">Bairro</label><input type="text" id="company_neighborhood" formControlName="neighborhood" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-                  <div><label for="company_city" class="block mb-2 text-sm">Cidade</label><input type="text" id="company_city" formControlName="city" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-                  <div><label for="company_state" class="block mb-2 text-sm">Estado</label><input type="text" id="company_state" formControlName="state" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
-              </div>
-          </div>
-           <div class="md:col-span-2"><label class="block mb-2 text-sm font-medium">Logo da Empresa</label><div class="flex items-center gap-4"><img [src]="profileForm.get('company_profile.logoUrl')?.value || 'https://placehold.co/100x100?text=Logo'" alt="Logo" class="h-20 w-20 object-contain rounded-md bg-gray-100 dark:bg-gray-800"><label class="text-sm font-medium text-primary-600 hover:underline cursor-pointer">Alterar Logo<input type="file" class="hidden" (change)="onLogoFileSelected($event)" accept="image/*"></label></div></div>
         </div>
+        @if(currentUser.company_profile?.tradeName) { <div><label class="text-sm font-medium text-gray-500">Nome
+            Fantasia</label>
+          <p class="mt-1 text-lg">{{ currentUser.company_profile.tradeName }}</p>
+        </div> }
+        <div><label class="text-sm font-medium text-gray-500">CNPJ/CPF</label>
+          <p class="mt-1 text-lg">{{ currentUser.company_profile?.taxId }}</p>
+        </div>
+        <div><label class="text-sm font-medium text-gray-500">Inscrição Estadual</label>
+          <p class="mt-1 text-lg">{{ currentUser.company_profile?.stateRegistration || 'Não informado' }}</p>
+        </div>
+        <div><label class="text-sm font-medium text-gray-500">Inscrição Municipal</label>
+          <p class="mt-1 text-lg">{{ currentUser.company_profile?.municipalRegistration || 'Não informado' }}</p>
+        </div>
+        <div><label class="text-sm font-medium text-gray-500">E-mail da Empresa</label>
+          <p class="mt-1 text-lg">{{ currentUser.company_profile?.email || 'Não informado' }}</p>
+        </div>
+        <div><label class="text-sm font-medium text-gray-500">Telefone da Empresa</label>
+          <p class="mt-1 text-lg">{{ currentUser.company_profile?.phone || 'Não informado' }}</p>
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-sm font-medium text-gray-500">Endereço da Empresa</label>
+          <p class="mt-1 text-lg">
+            @if(currentUser.company_profile?.address?.street) {
+            {{ currentUser.company_profile.address.street }}, {{ currentUser.company_profile.address.number }} - {{
+            currentUser.company_profile.address.neighborhood }}, {{ currentUser.company_profile.address.city }} - {{
+            currentUser.company_profile.address.state }}
+            } @else {
+            Não informado
+            }
+          </p>
+        </div>
+      </div>
+      } @else {
+      <p class="text-center text-gray-500">Os dados da empresa não estão preenchidos.</p>
+      }
+      } @else {
+      <!-- Company Edit Mode -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+        <div><label for="company_name" class="block mb-2 text-sm font-medium">Razão Social</label><input type="text"
+            id="company_name" formControlName="name"
+            class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+        <div class="flex items-center space-x-4">
+          <div class="flex-1"><label for="taxId" class="block mb-2 text-sm font-medium">CNPJ</label><input type="text"
+              id="taxId" formControlName="taxId"
+              class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+        </div>
+        <div><label for="tradeName" class="block mb-2 text-sm font-medium">Nome Fantasia</label><input type="text"
+            id="tradeName" formControlName="tradeName"
+            class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+        <div><label for="company_email" class="block mb-2 text-sm font-medium">E-mail da Empresa</label><input
+            type="email" id="company_email" formControlName="email"
+            class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+        <div><label for="company_phone" class="block mb-2 text-sm font-medium">Telefone da Empresa</label><input
+            type="tel" id="company_phone" formControlName="phone"
+            class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+        <div><label for="stateRegistration" class="block mb-2 text-sm font-medium">Inscrição Estadual</label><input
+            type="text" id="stateRegistration" formControlName="stateRegistration"
+            class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+        <div><label for="municipalRegistration" class="block mb-2 text-sm font-medium">Inscrição Municipal</label><input
+            type="text" id="municipalRegistration" formControlName="municipalRegistration"
+            class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+        <div class="md:col-span-2" formGroupName="address">
+          <div class="flex justify-between items-center mb-2">
+            <p class="text-base font-medium">Endereço da Empresa</p>
+            <div class="flex items-center space-x-2"><span class="text-sm">Usar mesmo endereço do usuário?</span>
+              <div class="flex items-center space-x-4"><label class="flex items-center"><input type="radio"
+                    [value]="false" formControlName="useUserAddress" class="w-4 h-4 text-primary-600"><span
+                    class="ml-2">Não</span></label><label class="flex items-center"><input type="radio" [value]="true"
+                    formControlName="useUserAddress" class="w-4 h-4 text-primary-600"><span
+                    class="ml-2">Sim</span></label></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 border p-4 rounded-lg dark:border-gray-700">
+            <div class="col-span-2 sm:col-span-1"><label for="company_zip" class="block mb-2 text-sm">CEP</label><input
+                type="text" id="company_zip" formControlName="zip"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+            <div class="col-span-2"><label for="company_street" class="block mb-2 text-sm">Rua</label><input type="text"
+                id="company_street" formControlName="street"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+            <div><label for="company_number" class="block mb-2 text-sm">Número</label><input type="text"
+                id="company_number" formControlName="number"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+            <div class="col-span-2"><label for="company_neighborhood" class="block mb-2 text-sm">Bairro</label><input
+                type="text" id="company_neighborhood" formControlName="neighborhood"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+            <div><label for="company_city" class="block mb-2 text-sm">Cidade</label><input type="text" id="company_city"
+                formControlName="city"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+            <div><label for="company_state" class="block mb-2 text-sm">Estado</label><input type="text"
+                id="company_state" formControlName="state"
+                class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"></div>
+          </div>
+        </div>
+        <div class="md:col-span-2"><label class="block mb-2 text-sm font-medium">Logo da Empresa</label>
+          <div class="flex items-center gap-4"><img
+              [src]="profileForm.get('company_profile.logoUrl')?.value || 'https://placehold.co/100x100?text=Logo'"
+              alt="Logo" class="h-20 w-20 object-contain rounded-md bg-gray-100 dark:bg-gray-800"><label
+              class="text-sm font-medium text-primary-600 hover:underline cursor-pointer">Alterar Logo<input type="file"
+                class="hidden" (change)="onLogoFileSelected($event)" accept="image/*"></label></div>
+        </div>
+      </div>
       }
     </div>
 
     @if (isEditing()) {
-        <div class="pt-8 flex justify-end space-x-3 max-w-4xl mx-auto">
-            <button type="button" (click)="cancelEdit()" class="text-gray-900 bg-white border border-gray-300 rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">Cancelar</button>
-            <button type="submit" [disabled]="profileForm.invalid" class="text-white bg-primary-600 hover:bg-primary-700 rounded-lg text-sm px-5 py-2.5 disabled:opacity-50">Salvar Alterações</button>
-        </div>
+    <div class="pt-8 flex justify-end space-x-3 max-w-4xl mx-auto">
+      <button type="button" (click)="cancelEdit()"
+        class="text-gray-900 bg-white border border-gray-300 rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">Cancelar</button>
+      <button type="submit" [disabled]="profileForm.invalid"
+        class="text-white bg-primary-600 hover:bg-primary-700 rounded-lg text-sm px-5 py-2.5 disabled:opacity-50">Salvar
+        Alterações</button>
+    </div>
     }
-  } @else {
+    } @else {
     <p>Carregando perfil...</p>
-  }
-</form>
+    }
+  </form>
 </div>
 
 <!-- Avatar Selection Modal -->
 <app-modal [isOpen]="isAvatarModalOpen()" title="Alterar Foto de Perfil" (closeModal)="isAvatarModalOpen.set(false)">
-  <div class="flex flex-col space-y-4"><label class="w-full text-center px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"><span class="font-semibold">Upload de Arquivo</span><input type="file" class="hidden" (change)="onAvatarFileSelected($event)" accept="image/*"></label><button (click)="startCamera()" class="w-full text-center px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Usar Câmera</button></div>
+  <div class="flex flex-col space-y-4"><label
+      class="w-full text-center px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"><span
+        class="font-semibold">Upload de Arquivo</span><input type="file" class="hidden"
+        (change)="onAvatarFileSelected($event)" accept="image/*"></label><button (click)="startCamera()"
+      class="w-full text-center px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Usar
+      Câmera</button></div>
 </app-modal>
 <!-- Camera Modal -->
 <app-modal [isOpen]="isCameraModalOpen()" title="Capturar Foto" (closeModal)="stopCamera()">
-  <div class="flex flex-col items-center"><video #videoElement autoplay playsinline class="w-full h-auto rounded-lg mb-4 bg-gray-900"></video><canvas #canvasElement class="hidden"></canvas><button (click)="captureImage()" class="w-full px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700">Capturar</button></div>
+  <div class="flex flex-col items-center"><video #videoElement autoplay playsinline
+      class="w-full h-auto rounded-lg mb-4 bg-gray-900"></video><canvas #canvasElement class="hidden"></canvas><button
+      (click)="captureImage()"
+      class="w-full px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700">Capturar</button></div>
 </app-modal>
 <!-- Change PIN Modal -->
 <app-modal [isOpen]="isPinModalOpen()" title="Alterar PIN de Impressão" (closeModal)="isPinModalOpen.set(false)">
   <form [formGroup]="pinForm" (ngSubmit)="savePin()">
-    <div><label for="newPin" class="block mb-2 text-sm font-medium">Novo PIN (4 dígitos)</label><input type="password" id="newPin" formControlName="newPin" maxlength="4" class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700" required>@if(pinForm.get('newPin')?.invalid && pinForm.get('newPin')?.touched){<p class="mt-2 text-xs text-red-500">O PIN deve conter exatamente 4 números.</p>}</div>
-    <div class="flex justify-end pt-6 space-x-2"><button type="button" (click)="isPinModalOpen.set(false)" class="text-gray-900 bg-white border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5">Cancelar</button><button type="submit" [disabled]="pinForm.invalid" class="text-white bg-primary-600 hover:bg-primary-700 font-medium rounded-lg text-sm px-5 py-2.5 disabled:opacity-50">Salvar PIN</button></div>
+    <div><label for="newPin" class="block mb-2 text-sm font-medium">Novo PIN (4 dígitos)</label><input type="password"
+        id="newPin" formControlName="newPin" maxlength="4"
+        class="bg-gray-50 border border-gray-300 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700"
+        required>@if(pinForm.get('newPin')?.invalid && pinForm.get('newPin')?.touched){<p
+        class="mt-2 text-xs text-red-500">O PIN deve conter exatamente 4 números.</p>}</div>
+    <div class="flex justify-end pt-6 space-x-2"><button type="button" (click)="isPinModalOpen.set(false)"
+        class="text-gray-900 bg-white border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5">Cancelar</button><button
+        type="submit" [disabled]="pinForm.invalid"
+        class="text-white bg-primary-600 hover:bg-primary-700 font-medium rounded-lg text-sm px-5 py-2.5 disabled:opacity-50">Salvar
+        PIN</button></div>
   </form>
 </app-modal>
