@@ -1,22 +1,39 @@
 <div class="min-h-screen bg-white dark:bg-gray-900 md:grid md:grid-cols-2 lg:grid-cols-5">
   <!-- Branding Column -->
+  <!-- Branding Column -->
   <div
-    class="hidden md:flex md:col-span-1 lg:col-span-2 bg-primary-700 text-white flex-col justify-between p-8 sm:p-12">
-    <div class="flex items-center gap-3">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-        stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-      </svg>
-      <h1 class="text-2xl font-bold tracking-wider">HUB PRINT</h1>
+    class="hidden md:flex md:col-span-1 lg:col-span-2 bg-gradient-to-br from-[#1e3a8a] via-[#172554] to-[#0f172a] text-white flex-col justify-between p-12 relative overflow-hidden">
+
+    <!-- Decorative background elements -->
+    <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-blue-500 opacity-10 blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-indigo-500 opacity-10 blur-3xl"></div>
+
+    <div class="relative z-10 flex items-center gap-4">
+      <div
+        class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/10">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold tracking-widest text-white drop-shadow-sm">HUB PRINT</h1>
     </div>
 
-    <div>
-      <p class="text-2xl font-semibold">"A melhor forma de prever o futuro é criá-lo."</p>
-      <p class="mt-2 text-lg text-primary-200">- Peter Drucker</p>
+    <div class="relative z-10 max-w-lg">
+      <div class="space-y-6">
+        <h2 class="text-4xl font-extrabold leading-tight tracking-tight text-white/95 drop-shadow-md">
+          Gestão inteligente <br> para sua <span class="text-blue-300">impressão</span>.
+        </h2>
+        <div class="pl-6 border-l-4 border-blue-400/50 py-2">
+          <p class="text-xl italic font-light text-blue-100 leading-relaxed">"A melhor forma de prever o futuro é
+            criá-lo."</p>
+          <p class="mt-3 text-sm font-semibold tracking-wider text-blue-300 uppercase">- Peter Drucker</p>
+        </div>
+      </div>
     </div>
 
-    <div class="text-sm text-primary-300">
+    <div class="relative z-10 text-xs text-blue-200/60 font-medium tracking-wide">
       &copy; 2024 HUB PRINT. Todos os direitos reservados.
     </div>
   </div>
