@@ -71,7 +71,9 @@ export class AuthService {
     const hash = window.location.hash;
     if (hash && (hash.includes('type=recovery') || hash.includes('type=magiclink'))) {
       this.isRecoveringPassword = true;
-      this.ngZone.run(() => this.router.navigate(['/reset-password']));
+      // IMPORTANT: preserveFragment is essential! Without it, the router clears the access_token
+      // from the URL before Supabase can read it, causing "Auth session missing".
+      this.ngZone.run(() => this.router.navigate(['/reset-password'], { preserveFragment: true }));
     }
 
     this.supabase.auth.onAuthStateChange(async (event, session) => {
@@ -82,7 +84,7 @@ export class AuthService {
         if (event === 'PASSWORD_RECOVERY') {
           this.isRecoveringPassword = true; // Set flag
           // Explicitly force navigation to the reset password page.
-          this.ngZone.run(() => this.router.navigate(['/reset-password']));
+          this.ngZone.run(() => this.router.navigate(['/reset-password'], { preserveFragment: true }));
           return;
         }
 
