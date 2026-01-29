@@ -33,7 +33,7 @@ export class AppComponent {
 
   private navigationEndSignal = toSignal(this.routerEvents$);
 
-  publicRoutes = ['/login', '/register', '/forgot-password'];
+  publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password'];
 
   shouldShowSidebar = computed(() => {
     const isAuthenticated = this.isAuthenticated();
