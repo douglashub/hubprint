@@ -20,8 +20,14 @@ export class ResetPasswordComponent {
     isLoading = signal(false);
 
     resetForm = this.fb.group({
-        password: ['', [Validators.required, Validators.minLength(6)]]
-    });
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', [Validators.required]]
+    }, { validators: this.passwordMatchValidator });
+
+    passwordMatchValidator(g: any) {
+        return g.get('password').value === g.get('confirmPassword').value
+            ? null : { mismatch: true };
+    }
 
     async onSubmit() {
         if (this.resetForm.valid) {

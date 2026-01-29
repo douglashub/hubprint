@@ -68,13 +68,20 @@ export class AuthService {
       const dataService = this.injector.get(DataService);
 
       this.ngZone.run(async () => {
+        // Handle Password Recovery flow explicitly to prevent redirecting to login inappropriately
+        if (event === 'PASSWORD_RECOVERY') {
+          // Do nothing (or set a recovery state), just ensuring we don't treat it as a logout or standard login yet
+          // The user will be redirected by Supabase to the reset page, and we want to let that happen.
+          return;
+        }
+
         if (event === 'SIGNED_IN' && session) {
           const userProfile = await this.fetchUserProfile(session.user);
           if (userProfile) {
             this.currentUser.set(userProfile);
             this.isAuthenticated.set(true);
             await dataService.loadCompanyData();
-            
+
             // Only navigate if this was triggered by an active login attempt.
             if (this.isLoggingIn()) {
               this.isLoggingIn.set(false); // Reset the flag
@@ -105,7 +112,7 @@ export class AuthService {
       console.error('Error fetching user profile:', error);
       return null;
     }
-    
+
     // Combine auth data (like email) with profile data
     return { ...data, email: user.email! } as UserProfile;
   }
@@ -146,10 +153,10 @@ export class AuthService {
   }
 
   async forgotPassword(email: string): Promise<boolean> {
-     const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/#/reset-password', // Angular hash routing
-     });
-     return !error;
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/#/reset-password', // Angular hash routing
+    });
+    return !error;
   }
 
   async updateCurrentUser(updatedProfile: Partial<Omit<UserProfile, 'id' | 'email'>>): Promise<void> {
@@ -162,7 +169,7 @@ export class AuthService {
       ...updatedProfile,
       company_profile: updatedProfile.company_profile ? { ...currentUser.company_profile, ...updatedProfile.company_profile } : currentUser.company_profile,
     };
-    
+
     // Prepare for DB update (remove fields that are not in user_profiles table)
     const { id, email, ...dbProfile } = newProfileData;
 
@@ -172,29 +179,29 @@ export class AuthService {
       .eq('id', currentUser.id)
       .select()
       .single();
-    
+
     if (error) {
       this.notificationService.show('Erro ao atualizar perfil.', 'error');
       console.error(error);
     } else if (data) {
-       this.currentUser.set({ ...data, email: currentUser.email } as UserProfile);
-       this.notificationService.show('Perfil atualizado!', 'success');
+      this.currentUser.set({ ...data, email: currentUser.email } as UserProfile);
+      this.notificationService.show('Perfil atualizado!', 'success');
     }
   }
 
   async updateCurrentUserPin(pin: string): Promise<void> {
     const currentUser = this.currentUser();
     if (!currentUser) return;
-    
+
     const { error } = await this.supabase
-        .from('user_profiles')
-        .update({ pin })
-        .eq('id', currentUser.id);
+      .from('user_profiles')
+      .update({ pin })
+      .eq('id', currentUser.id);
 
     if (error) {
       this.notificationService.show('Erro ao atualizar PIN.', 'error');
     } else {
-        this.currentUser.update(user => user ? { ...user, pin } : null);
+      this.currentUser.update(user => user ? { ...user, pin } : null);
     }
   }
 
