@@ -59,6 +59,7 @@ export class AuthService {
   private supabase = this.supabaseService.supabase;
 
   private isLoggingIn = signal(false);
+  private isRecoveringPassword = false; // Flag to prevent auto-logout during recovery
 
   isAuthenticated = signal<boolean>(false);
   currentUser = signal<UserProfile | null>(null);
@@ -70,13 +71,19 @@ export class AuthService {
       this.ngZone.run(async () => {
         // Handle Password Recovery flow explicitly to prevent redirecting to login inappropriately
         if (event === 'PASSWORD_RECOVERY') {
+          this.isRecoveringPassword = true; // Set flag
           // Explicitly force navigation to the reset password page.
-          // This handles cases where Supabase redirects to root or fragments are mishandled.
           this.ngZone.run(() => this.router.navigate(['/reset-password']));
           return;
         }
 
         if (event === 'SIGNED_IN' && session) {
+          // If we are in recovery mode, do NOT attempt to load profile or redirect elsewhere.
+          // The user is authenticated just enough to change the password.
+          if (this.isRecoveringPassword) {
+            return;
+          }
+
           const userProfile = await this.fetchUserProfile(session.user);
           if (userProfile) {
             this.currentUser.set(userProfile);
@@ -95,6 +102,7 @@ export class AuthService {
         } else if (event === 'SIGNED_OUT') {
           this.currentUser.set(null);
           this.isAuthenticated.set(false);
+          this.isRecoveringPassword = false; // Reset flag on logout
           dataService.clearData();
           this.router.navigate(['/login']);
         }
