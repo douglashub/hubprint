@@ -78,26 +78,27 @@ export class AuthService {
         }
 
         if (event === 'SIGNED_IN' && session) {
-          // If we are in recovery mode, do NOT attempt to load profile or redirect elsewhere.
-          // The user is authenticated just enough to change the password.
-          if (this.isRecoveringPassword) {
-            return;
-          }
-
+          // Attempt to fetch profile. RLS should now allow this even during recovery.
           const userProfile = await this.fetchUserProfile(session.user);
+
           if (userProfile) {
             this.currentUser.set(userProfile);
             this.isAuthenticated.set(true);
             await dataService.loadCompanyData();
 
             // Only navigate if this was triggered by an active login attempt.
+            // If recovering, we stay on the current page (which we forced to /reset-password above)
             if (this.isLoggingIn()) {
               this.isLoggingIn.set(false); // Reset the flag
               this.router.navigate(['/dashboard']);
             }
           } else {
-            // Couldn't fetch profile, sign out to be safe
-            await this.supabase.auth.signOut();
+            // Couldn't fetch profile.
+            // Only sign out if we are NOT in recovery mode. 
+            // If recovering, we tolerate a missing profile to allow the password reset to proceed.
+            if (!this.isRecoveringPassword) {
+              await this.supabase.auth.signOut();
+            }
           }
         } else if (event === 'SIGNED_OUT') {
           this.currentUser.set(null);
