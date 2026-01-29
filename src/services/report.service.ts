@@ -846,7 +846,11 @@ export class ReportService {
 
   private async getBase64ImageFromURL(url: string): Promise<string> {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { mode: 'cors' }); // Ensure CORS mode
+      if (!response.ok) {
+        console.error('Failed to fetch image:', response.statusText);
+        return '';
+      }
       const blob = await response.blob();
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -875,14 +879,22 @@ export class ReportService {
     doc.text(companyName, textX, 20, { align: 'right' });
 
     // Logo
-    if (options?.logoDataUrl) {
+    if (options?.logoDataUrl && options.logoDataUrl.length > 100) { // Simple check to ensure it's a real data URL
       const logoHeight = 15;
       const logoWidth = 15; // Aspect ratio might be an issue, assuming square or small icon
       // Position to the left of text
       const logoX = textX - textWidth - logoWidth - 5;
 
       try {
-        doc.addImage(options.logoDataUrl, 'PNG', logoX, 8, logoWidth, logoHeight);
+        // Auto-detect format from data URL if possible (jsPDF usually handles this if we omit format or match it)
+        // If data URL starts with data:image/jpeg, passing 'PNG' makes it fail silently or show nothing.
+        // Let's deduce format.
+        let format = 'PNG';
+        if (options.logoDataUrl.startsWith('data:image/jpeg') || options.logoDataUrl.startsWith('data:image/jpg')) {
+          format = 'JPEG';
+        }
+
+        doc.addImage(options.logoDataUrl, format, logoX, 8, logoWidth, logoHeight);
       } catch (e) {
         console.warn('Could not add logo to PDF', e);
       }
