@@ -25,7 +25,7 @@ export class CounterReaderComponent {
   clients = this.dataService.clients;
   printers = this.dataService.printers;
   private allManualReadings = this.dataService.manualCounterReadings;
-  
+
   selectedClientId = signal<string>('');
   selectedPrinterId = signal<string>('');
   selectedHistoryIds = signal(new Set<string>());
@@ -51,7 +51,7 @@ export class CounterReaderComponent {
     const clientId = this.selectedClientId();
     if (!clientId) return [];
     if (clientId === 'internal') {
-        return this.printers().filter(p => !p.client_id);
+      return this.printers().filter(p => !p.client_id);
     }
     return this.printers().filter(p => p.client_id === clientId);
   });
@@ -65,7 +65,7 @@ export class CounterReaderComponent {
   historyForSelectedPrinter = computed(() => {
     const printerId = this.selectedPrinterId();
     if (!printerId) return [];
-    
+
     const printer = this.printers().find(p => p.id === printerId);
     if (!printer) return [];
 
@@ -87,7 +87,7 @@ export class CounterReaderComponent {
       const overageCostBw = exceededBwPages * costBw;
       const overageCostColor = exceededColorPages * costColor;
       const totalBilling = franchiseValueBw + franchiseValueColor + overageCostBw + overageCostColor;
-      return { 
+      return {
         ...reading,
         id: reading.id, // Ensure id is present
         printerModel: printer.model,
@@ -95,17 +95,17 @@ export class CounterReaderComponent {
         clientName: client?.trade_name || 'Uso Interno',
         initialDate: reading.initial_date,
         finalDate: reading.final_date,
-        producedBw, 
-        producedColor, 
-        overageCostBw, 
-        overageCostColor, 
-        franchiseBw, 
-        franchiseColor, 
-        exceededBwPages, 
-        exceededColorPages, 
-        franchiseValueBw, 
-        franchiseValueColor, 
-        totalBilling 
+        producedBw,
+        producedColor,
+        overageCostBw,
+        overageCostColor,
+        franchiseBw,
+        franchiseColor,
+        exceededBwPages,
+        exceededColorPages,
+        franchiseValueBw,
+        franchiseValueColor,
+        totalBilling
       };
     });
   });
@@ -115,7 +115,7 @@ export class CounterReaderComponent {
     const selected = this.selectedHistoryIds();
     return history.length > 0 && history.every(item => selected.has(item.id));
   });
-  
+
   isAnyHistorySelected = computed(() => this.selectedHistoryIds().size > 0);
 
   onClientChange(event: Event): void {
@@ -152,14 +152,14 @@ export class CounterReaderComponent {
     if (formValue.finalCounterBw! < formValue.initialCounterBw! || formValue.finalCounterColor! < formValue.initialCounterColor!) { this.notificationService.show('O contador final deve ser maior ou igual ao inicial.', 'error'); return; }
 
     const newReading: Omit<ManualCounterReading, 'id' | 'company_id' | 'created_at'> = {
-        printer_id: printer.id,
-        client_id: printer.client_id || null,
-        initial_date: formValue.initialDate!,
-        final_date: formValue.finalDate!,
-        initial_counter_bw: formValue.initialCounterBw!,
-        final_counter_bw: formValue.finalCounterBw!,
-        initial_counter_color: formValue.initialCounterColor!,
-        final_counter_color: formValue.finalCounterColor!
+      printer_id: printer.id,
+      client_id: printer.client_id || null,
+      initial_date: formValue.initialDate!,
+      final_date: formValue.finalDate!,
+      initial_counter_bw: formValue.initialCounterBw!,
+      final_counter_bw: formValue.finalCounterBw!,
+      initial_counter_color: formValue.initialCounterColor!,
+      final_counter_color: formValue.finalCounterColor!
     };
 
     const success = await this.dataService.addManualCounterReading(newReading);
@@ -172,33 +172,33 @@ export class CounterReaderComponent {
     }
   }
 
-  generatePdfReport(): void {
+  async generatePdfReport(): Promise<void> {
     const selectedIds = this.selectedHistoryIds();
     if (selectedIds.size === 0) {
-        this.notificationService.show('Por favor, selecione pelo menos um registro do histórico para gerar o relatório.', 'info');
-        return;
+      this.notificationService.show('Por favor, selecione pelo menos um registro do histórico para gerar o relatório.', 'info');
+      return;
     }
 
     const client = this.selectedClientDetails();
     const printer = this.selectedPrinter();
-    
+
     if (!printer) {
-        this.notificationService.show('Impressora não encontrada para gerar o relatório.', 'error');
-        return;
+      this.notificationService.show('Impressora não encontrada para gerar o relatório.', 'error');
+      return;
     }
 
     const fullHistory = this.historyForSelectedPrinter();
     const selectedHistory = fullHistory.filter(item => selectedIds.has(item.id));
 
     if (selectedHistory.length > 0) {
-        const title = `Relatório de Leituras Manuais`;
-        const filename = `relatorio_leituras_${printer.asset_number}_${new Date().toISOString().split('T')[0]}.pdf`;
-        
-        this.reportService.generateManualCountersPdf(client, printer, selectedHistory, title, filename);
-        
-        this.notificationService.show(`Relatório com ${selectedHistory.length} registro(s) gerado com sucesso!`, 'success');
+      const title = `Relatório de Leituras Manuais`;
+      const filename = `relatorio_leituras_${printer.asset_number}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      await this.reportService.generateManualCountersPdf(client, printer, selectedHistory, title, filename);
+
+      this.notificationService.show(`Relatório com ${selectedHistory.length} registro(s) gerado com sucesso!`, 'success');
     } else {
-        this.notificationService.show('Nenhum registro correspondente encontrado para gerar o relatório.', 'error');
+      this.notificationService.show('Nenhum registro correspondente encontrado para gerar o relatório.', 'error');
     }
   }
 
@@ -227,13 +227,13 @@ export class CounterReaderComponent {
   }
 
   private resetForm(): void {
-     this.counterForm.reset({
-        initialDate: this.datePipe.transform(new Date(), 'yyyy-MM-dd'),
-        finalDate: this.datePipe.transform(new Date(), 'yyyy-MM-dd'),
-        initialCounterBw: 0,
-        finalCounterBw: 0,
-        initialCounterColor: 0,
-        finalCounterColor: 0,
+    this.counterForm.reset({
+      initialDate: this.datePipe.transform(new Date(), 'yyyy-MM-dd'),
+      finalDate: this.datePipe.transform(new Date(), 'yyyy-MM-dd'),
+      initialCounterBw: 0,
+      finalCounterBw: 0,
+      initialCounterColor: 0,
+      finalCounterColor: 0,
     });
   }
 }

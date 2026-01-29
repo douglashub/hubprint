@@ -48,11 +48,11 @@ export class ReportService {
    * @param title The title to display at the top of the PDF document.
    * @param filename The desired filename for the downloaded file.
    */
-  generatePdf(data: PrintJob[], title: string, filename: string): void {
+  async generatePdf(data: PrintJob[], title: string, filename: string): Promise<void> {
     const { jsPDF } = jspdf;
     const doc = new jsPDF();
 
-    const startY = this.drawHeader(doc, title);
+    const startY = await this.drawHeader(doc, title);
 
     const head = [['Usuário', 'Impressora', 'Documento', 'Págs', 'Custo', 'Data']];
     const body = data.map(job => [
@@ -115,11 +115,11 @@ export class ReportService {
    * @param title The title to display at the top of the PDF document.
    * @param filename The desired filename for the downloaded file.
    */
-  generatePrintersPdf(data: Printer[], title: string, filename: string): void {
+  async generatePrintersPdf(data: Printer[], title: string, filename: string): Promise<void> {
     const { jsPDF } = jspdf;
     const doc = new jsPDF('landscape');
 
-    const startY = this.drawHeader(doc, title);
+    const startY = await this.drawHeader(doc, title);
 
     const head = [['Cliente', 'Localização', 'Modelo', 'N° Série', 'IP', 'Status']];
     const body = data.map(p => [
@@ -142,7 +142,7 @@ export class ReportService {
     doc.save(filename);
   }
 
-  generateClientsPdf(data: Client[], title: string, filename: string): void {
+  async generateClientsPdf(data: Client[], title: string, filename: string): Promise<void> {
     const { jsPDF } = jspdf;
     const doc = new jsPDF();
     const primaryColor = '#1d4ed8'; // From tailwind config primary-700
@@ -192,6 +192,12 @@ export class ReportService {
       didDrawPage: (data: any) => {
         const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
         const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+
+        // Since we cannot await inside didDrawPage (sync callback), we cannot use drawHeader here easily if it fetches data.
+        // However, drawHeaderContent is sync! We can call drawHeaderContent.
+        // But we need the logo data first.
+        // For clients PDF, let's skip logo for now or pre-fetch it.
+        // Ideally we fetch it once at start of generateClientsPdf and pass it to closure.
         this.drawHeaderContent(doc, title, companyName, { noLine: true });
 
         // --- FOOTER ---
@@ -238,10 +244,10 @@ export class ReportService {
     this.downloadFile(csvContent, 'text/csv;charset=utf-8;', filename);
   }
 
-  generateCountersPdf(printer: Printer, counters: PrinterCounters, title: string, filename: string): void {
+  async generateCountersPdf(printer: Printer, counters: PrinterCounters, title: string, filename: string): Promise<void> {
     const { jsPDF } = jspdf;
     const doc = new jsPDF();
-    let lastY = this.drawHeader(doc, title);
+    let lastY = await this.drawHeader(doc, title);
 
     doc.setFontSize(11);
     doc.setTextColor('#646464');
@@ -314,12 +320,12 @@ export class ReportService {
     doc.save(filename);
   }
 
-  generateOutsourcingPdf(contract: OutsourcingContract, title: string, filename: string): void {
+  async generateOutsourcingPdf(contract: OutsourcingContract, title: string, filename: string): Promise<void> {
     const { jsPDF } = jspdf;
     const doc = new jsPDF();
 
     const formatCurrency = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    let lastY = this.drawHeader(doc, title);
+    let lastY = await this.drawHeader(doc, title);
 
     doc.setFontSize(12);
     doc.text(`Cliente: ${contract.clientName}`, 14, lastY);
@@ -643,11 +649,11 @@ export class ReportService {
     this.downloadFile(csvContent, 'text/csv;charset=utf-8;', filename);
   }
 
-  generatePreventiveMaintenancesPdf(data: PreventiveMaintenance[], title: string, filename: string): void {
+  async generatePreventiveMaintenancesPdf(data: PreventiveMaintenance[], title: string, filename: string): Promise<void> {
     const { jsPDF } = jspdf;
     const doc = new jsPDF('landscape');
 
-    const startY = this.drawHeader(doc, title);
+    const startY = await this.drawHeader(doc, title);
 
     const head = [['Data', 'Cliente', 'Equipamento', 'Patrimônio', 'Técnico']];
     const body = data.map(m => [
@@ -669,10 +675,10 @@ export class ReportService {
     doc.save(filename);
   }
 
-  generateManualCountersPdf(client: Client | null, printer: Printer, history: (ManualCounterReading & { overageCostBw?: number; overageCostColor?: number; producedBw?: number; producedColor?: number; franchiseBw?: number; franchiseColor?: number; exceededBwPages?: number; exceededColorPages?: number; franchiseValueBw?: number; franchiseValueColor?: number; totalBilling?: number; })[], title: string, filename: string): void {
+  async generateManualCountersPdf(client: Client | null, printer: Printer, history: (ManualCounterReading & { overageCostBw?: number; overageCostColor?: number; producedBw?: number; producedColor?: number; franchiseBw?: number; franchiseColor?: number; exceededBwPages?: number; exceededColorPages?: number; franchiseValueBw?: number; franchiseValueColor?: number; totalBilling?: number; })[], title: string, filename: string): Promise<void> {
     const { jsPDF } = jspdf;
     const doc = new jsPDF('landscape');
-    let finalY = this.drawHeader(doc, title);
+    let finalY = await this.drawHeader(doc, title);
 
     // Client Details
     doc.setFontSize(12);
@@ -763,10 +769,10 @@ export class ReportService {
     doc.save(filename);
   }
 
-  generateMaintenanceDetailPdf(schedule: MaintenanceSchedule, client: Client | null): void {
+  async generateMaintenanceDetailPdf(schedule: MaintenanceSchedule, client: Client | null): Promise<void> {
     const { jsPDF } = jspdf;
     const doc = new jsPDF();
-    let yPos = this.drawHeader(doc, 'Detalhes do Agendamento');
+    let yPos = await this.drawHeader(doc, 'Detalhes do Agendamento');
     const leftMargin = 14;
     const rightMargin = doc.internal.pageSize.width - 14;
     const colWidth = (rightMargin - leftMargin) / 2;
@@ -838,14 +844,49 @@ export class ReportService {
     doc.save(filename);
   }
 
-  private drawHeaderContent(doc: any, title: string, companyName: string, options?: { noLine?: boolean }): number {
+  private async getBase64ImageFromURL(url: string): Promise<string> {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      console.error('Error loading image', e);
+      return '';
+    }
+  }
+
+  private drawHeaderContent(doc: any, title: string, companyName: string, options?: { noLine?: boolean, logoDataUrl?: string }): number {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     const primaryColor = '#1d4ed8';
 
+    // Company Name
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(primaryColor);
-    doc.text(companyName, pageWidth - 14, 20, { align: 'right' });
+
+    // Calculate text width to position logo
+    const textWidth = doc.getTextWidth(companyName);
+    const textX = pageWidth - 14;
+    doc.text(companyName, textX, 20, { align: 'right' });
+
+    // Logo
+    if (options?.logoDataUrl) {
+      const logoHeight = 15;
+      const logoWidth = 15; // Aspect ratio might be an issue, assuming square or small icon
+      // Position to the left of text
+      const logoX = textX - textWidth - logoWidth - 5;
+
+      try {
+        doc.addImage(options.logoDataUrl, 'PNG', logoX, 8, logoWidth, logoHeight);
+      } catch (e) {
+        console.warn('Could not add logo to PDF', e);
+      }
+    }
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
@@ -861,14 +902,17 @@ export class ReportService {
     return 38; // The Y position where the content should start
   }
 
-  private drawHeader(doc: any, title: string, options?: { noLine?: boolean }): number {
-    // FIX: Correct property access from 'company' to 'company_profile'
+  private async drawHeader(doc: any, title: string, options?: { noLine?: boolean }): Promise<number> {
     const company = this.authService.currentUser()?.company_profile;
     const companyName = (company?.isCompanyProfileActive ? company?.tradeName : '') || 'HUB PRINT';
 
-    return this.drawHeaderContent(doc, title, companyName, options);
-  }
+    let logoDataUrl = '';
+    if (company?.logoUrl) {
+      logoDataUrl = await this.getBase64ImageFromURL(company.logoUrl);
+    }
 
+    return this.drawHeaderContent(doc, title, companyName, { ...options, logoDataUrl });
+  }
 
   /**
    * Creates a Blob from content and triggers a browser download.
