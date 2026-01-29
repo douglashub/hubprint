@@ -14,7 +14,7 @@ export class SidebarComponent {
   uiStateService = inject(UiStateService);
   isSidebarOpen = this.uiStateService.isSidebarOpen;
   router = inject(Router)
-  appVersion = 'v0.9.9';
+  appVersion = 'v0.9.10';
 
   navLinks = [
     { path: '/dashboard', icon: 'home', label: 'Dashboard' },

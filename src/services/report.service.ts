@@ -147,9 +147,8 @@ export class ReportService {
     const doc = new jsPDF();
     const primaryColor = '#1d4ed8'; // From tailwind config primary-700
 
-    // FIX: Correct property access from 'company' to 'company_profile'
-    const company = this.authService.currentUser()?.company_profile;
-    const companyName = (company?.isCompanyProfileActive ? company?.tradeName : '') || 'HUB PRINT';
+    // Draw header first (awaits logo loading)
+    let lastY = await this.drawHeader(doc, title);
 
     const head = [['Nome Fantasia', 'CNPJ', 'Contato', 'Email', 'Telefone', 'Cidade/UF', 'Status']];
     const body = data.map(client => [
@@ -163,6 +162,7 @@ export class ReportService {
     ]);
 
     (doc as any).autoTable({
+      startY: lastY + 5,
       head: head,
       body: body,
       theme: 'grid',
@@ -190,25 +190,16 @@ export class ReportService {
         fillColor: '#f9fafb' // gray-50
       },
       didDrawPage: (data: any) => {
+        // Footer only
         const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
         const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-
-        // Since we cannot await inside didDrawPage (sync callback), we cannot use drawHeader here easily if it fetches data.
-        // However, drawHeaderContent is sync! We can call drawHeaderContent.
-        // But we need the logo data first.
-        // For clients PDF, let's skip logo for now or pre-fetch it.
-        // Ideally we fetch it once at start of generateClientsPdf and pass it to closure.
-        this.drawHeaderContent(doc, title, companyName, { noLine: true });
-
-        // --- FOOTER ---
         const pageCount = doc.internal.getNumberOfPages();
         doc.setLineWidth(0.5);
         doc.line(14, pageHeight - 15, pageWidth - 14, pageHeight - 15);
         doc.setFontSize(8);
         doc.setTextColor('#6b7280'); // gray-500
         doc.text(`Página ${data.pageNumber} de ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-      },
-      margin: { top: 35 } // Start table below the header
+      }
     });
 
     doc.save(filename);
@@ -220,7 +211,7 @@ export class ReportService {
     csvContent += "Contadores,Colorido,P&B,Total\n";
     csvContent += `Copiar,${counters.general.copy.color},${counters.general.copy.bw},${counters.general.copy.color + counters.general.copy.bw}\n`;
     csvContent += `Impressora,${counters.general.print.color},${counters.general.print.bw},${counters.general.print.color + counters.general.print.bw}\n`;
-    csvContent += `Total,${counters.general.total.color},${counters.general.total.bw},${counters.general.total.color + counters.general.total.bw}\n\n`;
+    csvContent += `Total,${counters.general.total.color},${counters.general.total.bw},${counters.general.total.bw + counters.general.total.color}\n\n`;
 
     csvContent += "Tamanho Papel,Colorido,P&B,Total\n";
     Object.entries(counters.paperSizes).forEach(([key, value]) => {
@@ -377,74 +368,123 @@ export class ReportService {
     doc.save(filename);
   }
 
-  generatePreventiveMaintenancePdf(data: PreventiveMaintenance[], filename: string): void {
-    // FIX: Correct property access from 'company' to 'company_profile'
-    const company = this.authService.currentUser()?.company_profile;
-    const companyName = (company?.isCompanyProfileActive ? company?.tradeName : '') || 'HUB PRINT';
-    const content: any[] = [];
+  async generatePreventiveMaintenancePdf(data: PreventiveMaintenance[], filename: string): Promise<void> {
+    const { jsPDF } = jspdf;
+    const doc = new jsPDF();
+    const primaryColor = '#1d4ed8';
 
-    data.forEach((report, index) => {
-      const fullDate = `${this.datePipe.transform(report.date, 'dd/MM/yyyy')} ${report.time}`;
-      const checklistBody = [
-        [{ text: 'ITEM', style: 'tableHeader' }, { text: 'OK', style: 'tableHeader' }, { text: 'PENDENTE', style: 'tableHeader' }, { text: 'N/A', style: 'tableHeader' }, { text: 'OBSERVAÇÕES', style: 'tableHeader' }],
-        ...report.checklist.map(item => [
-          { text: item.name, style: 'tableCell' },
-          { text: item.status === 'OK' ? 'X' : '', style: 'tableCellCenter' },
-          { text: item.status === 'PENDENTE' ? 'X' : '', style: 'tableCellCenter' },
-          { text: item.status === 'N/A' ? 'X' : '', style: 'tableCellCenter' },
-          { text: item.observation || '', style: 'tableCell' },
-        ])
+    // Await header drawing to ensure logo is loaded
+    // Note: Since this report can have multiple pages (one per maintenance), 
+    // we need to handle this carefully.
+
+    // We will iterate and add pages.
+
+    for (let i = 0; i < data.length; i++) {
+      const report = data[i];
+      if (i > 0) doc.addPage(); // Add new page for subsequent reports
+
+      // Draw Standard Header
+      let yPos = await this.drawHeader(doc, 'PLANO DE MANUTENÇÃO PREVENTIVA', { noLine: false });
+
+      // Report Metadata Table (Client, Date, Equipment)
+      const metadata = [
+        ['Data:', `${this.datePipe.transform(report.date, 'dd/MM/yyyy')} ${report.time}`, 'Patrimônio:', report.assetNumber],
+        ['Cliente:', report.clientName, 'Cidade:', report.city],
+        ['Equipamento:', report.equipmentModel, 'Técnico:', report.technicianName]
       ];
 
-      const pageContent = [
-        { canvas: [{ type: 'line', x1: 0, y1: 5, x2: 595 - 2 * 40, y2: 5, lineWidth: 0.5, lineColor: '#d1d5db' }], margin: [0, 0, 0, 10] },
-        { style: 'infoBoxTable', table: { widths: ['*', '*', '*'], body: [[{ text: [{ text: 'Data: ', bold: true }, fullDate], style: 'infoBox' }, { text: [{ text: 'Patrimônio: ', bold: true }, report.assetNumber], style: 'infoBox' }, { text: [{ text: 'Equipamento: ', bold: true }, report.equipmentModel], style: 'infoBox' }], [{ text: [{ text: 'Cliente: ', bold: true }, report.clientName], style: 'infoBox', colSpan: 2 }, {}, { text: [{ text: 'Cidade: ', bold: true }, report.city], style: 'infoBox' }]] }, layout: { hLineWidth: () => 1, vLineWidth: () => 1, hLineColor: () => '#bfbfbf', vLineColor: () => '#bfbfbf' }, marginBottom: 15 },
-        { table: { headerRows: 1, widths: [150, 30, 50, 30, '*'], body: checklistBody }, layout: 'lightHorizontalLines' },
-        { text: '', margin: [0, 20, 0, 0] },
-        { table: { widths: ['*'], body: [[{ border: [false, false, false, false], columns: [{ stack: [{ text: 'Assinatura do cliente:', style: 'footerText' }, { canvas: [{ type: 'line', x1: 0, y1: 5, x2: 220, y2: 5, lineWidth: 0.5 }], margin: [0, 15, 0, 0] },] }, { stack: [{ text: 'Data:', style: 'footerText' }, { canvas: [{ type: 'line', x1: 0, y1: 5, x2: 120, y2: 5, lineWidth: 0.5 }], margin: [0, 15, 0, 0] },] }] }], [{ margin: [0, 15, 0, 5], border: [true, true, true, true], stack: [{ text: 'ÁREA DESTINADA AO RESPONSÁVEL TÉCNICO', style: 'footerBoxHeader', alignment: 'center' }, { columns: [{ text: `Técnico: ${report.technicianName}`, style: 'footerText', margin: [5, 5, 0, 0] }, { text: 'Assinatura: ___________________________', style: 'footerText', margin: [0, 5, 0, 0] }], margin: [0, 5, 0, 5] }], fillColor: '#f3f4f6' }], [{ border: [true, true, true, true], stack: [{ text: 'Recomendações/ações corretivas:', style: 'footerBoxHeader' }, { text: report.recommendations || ' ', style: 'footerText', margin: [5, 2, 5, 5] },], minHeight: 40 }]] }, layout: 'noBorders' }
-      ];
+      // We can use a simple autoTable for metadata or text. autoTable is cleaner.
+      (doc as any).autoTable({
+        startY: yPos + 5,
+        body: metadata,
+        theme: 'plain',
+        styles: { fontSize: 10, cellPadding: 2 },
+        columnStyles: {
+          0: { fontStyle: 'bold', cellWidth: 25 },
+          1: { cellWidth: 70 },
+          2: { fontStyle: 'bold', cellWidth: 25 },
+          3: { cellWidth: 'auto' }
+        }
+      });
 
-      content.push(...pageContent);
+      yPos = (doc as any).lastAutoTable.finalY + 10;
 
-      if (index < data.length - 1) {
-        content.push({ text: '', pageBreak: 'after' });
+      // Checklist Table
+      const checklistHead = [['ITEM', 'OK', 'PENDENTE', 'N/A', 'OBSERVAÇÕES']];
+      const checklistBody = report.checklist.map(item => [
+        item.name,
+        item.status === 'OK' ? 'X' : '',
+        item.status === 'PENDENTE' ? 'X' : '',
+        item.status === 'N/A' ? 'X' : '',
+        item.observation || ''
+      ]);
+
+      (doc as any).autoTable({
+        startY: yPos,
+        head: checklistHead,
+        body: checklistBody,
+        theme: 'grid',
+        headStyles: {
+          fillColor: '#eeeeee',
+          textColor: 'black',
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        styles: { fontSize: 9, cellPadding: 3 },
+        columnStyles: {
+          0: { cellWidth: 'auto' }, // Item
+          1: { cellWidth: 15, halign: 'center' }, // OK
+          2: { cellWidth: 20, halign: 'center' }, // PENDENTE
+          3: { cellWidth: 15, halign: 'center' }, // N/A
+          4: { cellWidth: 50 } // OBS
+        }
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 20;
+
+      // Signature / Footer Area
+      // Check if we need a new page for signatures
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
       }
-    });
 
-    const generationTimestamp = this.datePipe.transform(new Date(), 'dd/MM/yyyy HH:mm:ss');
+      // Recommendations
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Recomendações / Ações Corretivas:', 14, yPos);
+      yPos += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      const splitRecs = doc.splitTextToSize(report.recommendations || 'Nenhuma.', 180);
+      doc.text(splitRecs, 14, yPos);
+      yPos += (splitRecs.length * 5) + 15;
 
-    const docDefinition = {
-      pageSize: 'A4',
-      pageMargins: [40, 60, 40, 40],
-      header: {
-        columns: [
-          {
-            stack: [
-              { text: 'PLANO DE MANUTENÇÃO PREVENTIVA', style: 'headerTitle', alignment: 'left' },
-              { text: `Gerado em: ${generationTimestamp}`, style: 'headerSubtitle', alignment: 'left' }
-            ]
-          },
-          { text: companyName, style: 'headerCompany', alignment: 'right' }
-        ],
-        margin: [40, 20, 40, 0]
-      },
-      content: content,
-      styles: {
-        headerTitle: { fontSize: 12, bold: false, color: '#374151' },
-        headerSubtitle: { fontSize: 8, color: '#6b7280', margin: [0, 2, 0, 0] },
-        headerCompany: { fontSize: 18, bold: true, color: '#1d4ed8' },
-        infoBoxTable: { fontSize: 9 },
-        infoBox: { margin: 5 },
-        tableHeader: { bold: true, fontSize: 9, color: 'black', fillColor: '#eeeeee', alignment: 'center', margin: [0, 5, 0, 5] },
-        tableCell: { fontSize: 8, margin: [0, 5, 0, 5] },
-        tableCellCenter: { fontSize: 8, margin: [0, 5, 0, 5], alignment: 'center' },
-        footerText: { fontSize: 9, margin: [0, 2, 0, 2] },
-        footerBoxHeader: { fontSize: 9, bold: true, margin: [5, 5, 5, 5] }
-      },
-      defaultStyle: { font: 'Roboto' }
-    };
+      // Signatures
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
 
-    pdfMake.createPdf(docDefinition).download(filename);
+      const pageWidth = doc.internal.pageSize.width;
+
+      // Client Signature Line
+      doc.setLineWidth(0.5);
+      doc.line(14, yPos, 90, yPos); // Line
+      doc.setFontSize(8);
+      doc.text('Assinatura do Cliente', 14, yPos + 5);
+
+      // Date Line
+      doc.line(110, yPos, 160, yPos);
+      doc.text('Data', 110, yPos + 5);
+
+      // Technician Signature
+      yPos += 20;
+      doc.line(14, yPos, 90, yPos);
+      doc.text(`Técnico: ${report.technicianName}`, 14, yPos + 5);
+    }
+
+    doc.save(filename);
   }
 
   generatePreventiveMaintenanceDoc(data: PreventiveMaintenance[], filename: string): void {
