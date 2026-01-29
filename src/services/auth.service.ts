@@ -73,6 +73,31 @@ export class AuthService {
     if (hash && (hash.includes('type=recovery') || hash.includes('type=magiclink'))) {
       console.log('[AuthService] Recovery detected via Hash!'); // DEBUG
       this.isRecoveringPassword = true;
+
+      // Manual Session Hydration:
+      // Angular's HashLocationStrategy can conflict with Supabase's auto-detection.
+      // We manually parse the tokens to ensure the session is established.
+      const params = new URLSearchParams(hash.substring(1)); // Remove leading #
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+
+      if (accessToken && refreshToken) {
+        console.log('[AuthService] Manually hydrating session...');
+        this.supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        }).then(({ data, error }) => {
+          if (error) {
+            console.error('[AuthService] Manual hydration failed:', error);
+          } else {
+            console.log('[AuthService] Manual hydration success:', data.session?.user.id);
+            // Notify that we are authenticated so the UI updates if needed
+            this.currentUser.set(data.session?.user as any); // Cast for simplicity here
+            this.isAuthenticated.set(true);
+          }
+        });
+      }
+
       // IMPORTANT: preserveFragment is essential! Without it, the router clears the access_token
       // from the URL before Supabase can read it, causing "Auth session missing".
       this.ngZone.run(() => this.router.navigate(['/reset-password'], { preserveFragment: true }));
