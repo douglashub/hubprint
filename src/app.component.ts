@@ -11,6 +11,8 @@ import { SidebarComponent } from './components/layout/sidebar/sidebar.component'
 import { HeaderComponent } from './components/layout/header/header.component';
 import { NotificationComponent } from './components/layout/notification/notification.component';
 
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -19,9 +21,9 @@ import { NotificationComponent } from './components/layout/notification/notifica
 })
 export class AppComponent {
   authService = inject(AuthService);
-  // FIX: Add explicit type to router to fix type inference issue.
   router: Router = inject(Router);
   uiStateService = inject(UiStateService);
+  swUpdate = inject(SwUpdate); // Inject Service Worker Update
 
   isAuthenticated = this.authService.isAuthenticated;
   isSidebarOpen = this.uiStateService.isSidebarOpen;
@@ -37,19 +39,32 @@ export class AppComponent {
 
   shouldShowSidebar = computed(() => {
     const isAuthenticated = this.isAuthenticated();
-    // We need to react to navigation changes. 
-    // Since navigationEndSignal captures the event, we can use it to assume URL might have changed.
     this.navigationEndSignal();
     const currentUrl = this.router.url.split('?')[0];
     return isAuthenticated && !this.publicRoutes.includes(currentUrl);
   });
 
   constructor() {
+    // 1. Service Worker Update Logic
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.versionUpdates.pipe(
+        filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY')
+      ).subscribe(() => {
+        // Automatically reload directly for now to ensure user gets the fix immediately
+        // In a polished app, we might show a toast "New version available", but for this critical fix, force reload.
+        window.location.reload();
+      });
+
+      // Check for updates immediately on load
+      this.swUpdate.checkForUpdate().then(found => {
+        if (found) console.log('New version found, updating...');
+      });
+    }
+
+    // 2. Auth Redirect Logic
     effect(() => {
       const event = this.navigationEndSignal();
-      // On successful navigation, check if the user should be redirected.
       if (event instanceof NavigationEnd) {
-        // If user is not authenticated and the route is not a public one, redirect to login.
         if (!this.isAuthenticated() && !this.publicRoutes.includes(event.urlAfterRedirects.split('?')[0])) {
           this.router.navigate(['/login']);
         }
