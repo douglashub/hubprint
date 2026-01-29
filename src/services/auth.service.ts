@@ -65,6 +65,15 @@ export class AuthService {
   currentUser = signal<UserProfile | null>(null);
 
   constructor() {
+    // CRITICAL: Check for recovery parameters in the URL immediately on startup.
+    // This handles the case where Supabase redirects to the root with hash params (e.g., /#access_token=...&type=recovery)
+    // preventing the AuthGuard's default redirect to login from taking precedence effectively or handling manual routing.
+    const hash = window.location.hash;
+    if (hash && (hash.includes('type=recovery') || hash.includes('type=magiclink'))) {
+      this.isRecoveringPassword = true;
+      this.ngZone.run(() => this.router.navigate(['/reset-password']));
+    }
+
     this.supabase.auth.onAuthStateChange(async (event, session) => {
       const dataService = this.injector.get(DataService);
 
@@ -163,8 +172,12 @@ export class AuthService {
   }
 
   async forgotPassword(email: string): Promise<boolean> {
+    // Use pure origin to avoid "Double Hash" issues (e.g. /#/reset-password#access_token=...)
+    // We handle the routing manually in the constructor based on 'type=recovery' param.
+    const redirectTo = window.location.origin;
+
     const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/#/reset-password', // Angular hash routing
+      redirectTo: redirectTo,
     });
     return !error;
   }
