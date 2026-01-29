@@ -70,8 +70,9 @@ export class AuthService {
       this.ngZone.run(async () => {
         // Handle Password Recovery flow explicitly to prevent redirecting to login inappropriately
         if (event === 'PASSWORD_RECOVERY') {
-          // Do nothing (or set a recovery state), just ensuring we don't treat it as a logout or standard login yet
-          // The user will be redirected by Supabase to the reset page, and we want to let that happen.
+          // Explicitly force navigation to the reset password page.
+          // This handles cases where Supabase redirects to root or fragments are mishandled.
+          this.ngZone.run(() => this.router.navigate(['/reset-password']));
           return;
         }
 
