@@ -34,15 +34,35 @@ export class ResetPasswordComponent {
             this.isLoading.set(true);
             const password = this.resetForm.get('password')?.value;
 
-            try {
-                const { error } = await this.supabase.auth.updateUser({ password: password! });
+            // DEBUG: Check current session state before attempting update
+            const { data: { session }, error: sessionError } = await this.supabase.auth.getSession();
+            console.log('[ResetPassword] Current Session:', session);
+            console.log('[ResetPassword] Session Error:', sessionError);
+            console.log('[ResetPassword] Attempting to update password...');
 
-                if (error) throw error;
+            if (!session) {
+                console.error('[ResetPassword] NO SESSION FOUND. Supabase cannot update user without an active session.');
+                this.notificationService.show('Sessão perdida. Por favor, clique no link do email novamente.', 'error');
+                this.isLoading.set(false);
+                return;
+            }
+
+            try {
+                // IMPORTANT: We use updateUser, which requires an active session.
+                const { data, error } = await this.supabase.auth.updateUser({ password: password! });
+
+                console.log('[ResetPassword] Update Result Data:', data);
+
+                if (error) {
+                    console.error('[ResetPassword] Update Error:', error);
+                    throw error;
+                }
 
                 this.notificationService.show('Senha atualizada com sucesso!', 'success');
                 this.router.navigate(['/login']);
             } catch (error: any) {
-                this.notificationService.show('Erro ao atualizar senha: ' + error.message, 'error');
+                console.error('[ResetPassword] Catch Error:', error);
+                this.notificationService.show('Erro ao atualizar senha: ' + (error.message || JSON.stringify(error)), 'error');
             } finally {
                 this.isLoading.set(false);
             }

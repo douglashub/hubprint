@@ -69,7 +69,9 @@ export class AuthService {
     // This handles the case where Supabase redirects to the root with hash params (e.g., /#access_token=...&type=recovery)
     // preventing the AuthGuard's default redirect to login from taking precedence effectively or handling manual routing.
     const hash = window.location.hash;
+    console.log('[AuthService] Startup Hash:', hash); // DEBUG
     if (hash && (hash.includes('type=recovery') || hash.includes('type=magiclink'))) {
+      console.log('[AuthService] Recovery detected via Hash!'); // DEBUG
       this.isRecoveringPassword = true;
       // IMPORTANT: preserveFragment is essential! Without it, the router clears the access_token
       // from the URL before Supabase can read it, causing "Auth session missing".
@@ -77,11 +79,16 @@ export class AuthService {
     }
 
     this.supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[AuthService] Auth Event:', event); // DEBUG
+      console.log('[AuthService] Session exists?', !!session); // DEBUG
+      if (session) console.log('[AuthService] User ID:', session.user.id); // DEBUG
+
       const dataService = this.injector.get(DataService);
 
       this.ngZone.run(async () => {
         // Handle Password Recovery flow explicitly to prevent redirecting to login inappropriately
         if (event === 'PASSWORD_RECOVERY') {
+          console.log('[AuthService] Handling PASSWORD_RECOVERY event'); // DEBUG
           this.isRecoveringPassword = true; // Set flag
           // Explicitly force navigation to the reset password page.
           this.ngZone.run(() => this.router.navigate(['/reset-password'], { preserveFragment: true }));
