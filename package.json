@@ -1,7 +1,7 @@
 {
   "name": "hub-print",
   "private": true,
-  "version": "0.9.18",
+  "version": "0.9.19",
   "type": "module",
   "scripts": {
     "dev": "ng serve",
@@ -20,6 +20,7 @@
     "@angular/router": "^21.1.1",
     "@angular/service-worker": "^21.1.0",
     "@supabase/supabase-js": "^2.91.1",
+    "dexie": "^4.2.1",
     "rxjs": "^7.8.2",
     "tailwindcss": "latest"
   },

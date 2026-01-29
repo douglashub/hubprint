@@ -3,6 +3,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
+import { db } from './db';
 
 // Interfaces should match the DB schema from banco.sql
 
@@ -36,7 +37,7 @@ export interface User {
   id: string;
   full_name: string;
   email: string; // Not in user_profiles table, joined from auth.users
-  department: string; 
+  department: string;
   role: 'company_admin' | 'user';
   address?: {
     street: string;
@@ -101,18 +102,18 @@ export interface Client {
 }
 
 export interface MaintenanceSchedule {
-    id: string;
-    company_id: string;
-    client_id: string;
-    client_name: string; // Joined
-    printers: { id: string; model: string; asset_number: string }[];
-    type: 'Preventiva' | 'Corretiva';
-    scheduled_date: string; // YYYY-MM-DD
-    scheduled_time: string; // HH:mm
-    technician: string;
-    description: string;
-    status: 'Agendada' | 'Em Andamento' | 'Concluída' | 'Cancelada';
-    created_at: string;
+  id: string;
+  company_id: string;
+  client_id: string;
+  client_name: string; // Joined
+  printers: { id: string; model: string; asset_number: string }[];
+  type: 'Preventiva' | 'Corretiva';
+  scheduled_date: string; // YYYY-MM-DD
+  scheduled_time: string; // HH:mm
+  technician: string;
+  description: string;
+  status: 'Agendada' | 'Em Andamento' | 'Concluída' | 'Cancelada';
+  created_at: string;
 }
 
 
@@ -152,10 +153,10 @@ export class DataService {
 
   private clientsSignal = signal<Client[]>([]);
   clients = this.clientsSignal.asReadonly();
-  
+
   private maintenanceSchedulesSignal = signal<MaintenanceSchedule[]>([]);
   maintenanceSchedules = this.maintenanceSchedulesSignal.asReadonly();
-  
+
   private printJobsSignal = signal<PrintJob[]>([]);
   printJobs = this.printJobsSignal.asReadonly();
 
@@ -190,17 +191,17 @@ export class DataService {
     let totalCostFromJobs = 0;
     let totalPrintsFromJobs = 0;
     monthlyJobs.forEach(job => {
-        totalCostFromJobs += job.total_cost || 0;
-        totalPrintsFromJobs += job.total_pages || 0;
-        
-        const printer = this.printers().find(p => p.id === job.printer_id);
-        if (printer) {
-            pagesByPrinterMap.set(printer.model, (pagesByPrinterMap.get(printer.model) || 0) + (job.total_pages || 0));
+      totalCostFromJobs += job.total_cost || 0;
+      totalPrintsFromJobs += job.total_pages || 0;
 
-            const client = printer.client_id ? this.clients().find(c => c.id === printer.client_id) : null;
-            const clientName = client?.trade_name || 'Uso Interno';
-            costByClientMap.set(clientName, (costByClientMap.get(clientName) || 0) + (job.total_cost || 0));
-        }
+      const printer = this.printers().find(p => p.id === job.printer_id);
+      if (printer) {
+        pagesByPrinterMap.set(printer.model, (pagesByPrinterMap.get(printer.model) || 0) + (job.total_pages || 0));
+
+        const client = printer.client_id ? this.clients().find(c => c.id === printer.client_id) : null;
+        const clientName = client?.trade_name || 'Uso Interno';
+        costByClientMap.set(clientName, (costByClientMap.get(clientName) || 0) + (job.total_cost || 0));
+      }
     });
 
     // 2. Process manual counter readings
@@ -209,33 +210,33 @@ export class DataService {
     let totalCostFromReadings = 0;
     let totalPrintsFromReadings = 0;
     monthlyReadings.forEach(reading => {
-        const printer = this.printers().find(p => p.id === reading.printer_id);
-        const client = printer?.client_id ? this.clients().find(c => c.id === printer.client_id) : null;
-        
-        const producedBw = reading.final_counter_bw - reading.initial_counter_bw;
-        const producedColor = reading.final_counter_color - reading.initial_counter_color;
-        const totalPrintsForReading = producedBw + producedColor;
-        totalPrintsFromReadings += totalPrintsForReading;
+      const printer = this.printers().find(p => p.id === reading.printer_id);
+      const client = printer?.client_id ? this.clients().find(c => c.id === printer.client_id) : null;
 
-        if (printer) {
-            pagesByPrinterMap.set(printer.model, (pagesByPrinterMap.get(printer.model) || 0) + totalPrintsForReading);
-        }
-        
-        const franchiseBw = client?.franchise_pages_bw ?? 0;
-        const franchiseValueBw = client?.franchise_value_bw ?? 0;
-        const franchiseColor = client?.franchise_pages_color ?? 0;
-        const franchiseValueColor = client?.franchise_value_color ?? 0;
-        const costBw = client?.overage_cost_bw ?? 0;
-        const costColor = client?.overage_cost_color ?? 0;
-        const exceededBwPages = Math.max(0, producedBw - franchiseBw);
-        const exceededColorPages = Math.max(0, producedColor - franchiseColor);
-        const overageCostBw = exceededBwPages * costBw;
-        const overageCostColor = exceededColorPages * costColor;
-        const totalBilling = franchiseValueBw + franchiseValueColor + overageCostBw + overageCostColor;
-        totalCostFromReadings += totalBilling;
+      const producedBw = reading.final_counter_bw - reading.initial_counter_bw;
+      const producedColor = reading.final_counter_color - reading.initial_counter_color;
+      const totalPrintsForReading = producedBw + producedColor;
+      totalPrintsFromReadings += totalPrintsForReading;
 
-        const clientName = client?.trade_name || 'Uso Interno';
-        costByClientMap.set(clientName, (costByClientMap.get(clientName) || 0) + totalBilling);
+      if (printer) {
+        pagesByPrinterMap.set(printer.model, (pagesByPrinterMap.get(printer.model) || 0) + totalPrintsForReading);
+      }
+
+      const franchiseBw = client?.franchise_pages_bw ?? 0;
+      const franchiseValueBw = client?.franchise_value_bw ?? 0;
+      const franchiseColor = client?.franchise_pages_color ?? 0;
+      const franchiseValueColor = client?.franchise_value_color ?? 0;
+      const costBw = client?.overage_cost_bw ?? 0;
+      const costColor = client?.overage_cost_color ?? 0;
+      const exceededBwPages = Math.max(0, producedBw - franchiseBw);
+      const exceededColorPages = Math.max(0, producedColor - franchiseColor);
+      const overageCostBw = exceededBwPages * costBw;
+      const overageCostColor = exceededColorPages * costColor;
+      const totalBilling = franchiseValueBw + franchiseValueColor + overageCostBw + overageCostColor;
+      totalCostFromReadings += totalBilling;
+
+      const clientName = client?.trade_name || 'Uso Interno';
+      costByClientMap.set(clientName, (costByClientMap.get(clientName) || 0) + totalBilling);
     });
 
     // 3. Combine totals
@@ -244,20 +245,20 @@ export class DataService {
 
     // 4. Finalize chart data
     const pagesByPrinter = Array.from(pagesByPrinterMap.entries())
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value);
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
 
     const costByClient = Array.from(costByClientMap.entries())
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value);
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
 
     return {
-        totalPrints,
-        totalCost,
-        activePrinters: this.printers().filter(p => p.installation_status === 'OK').length,
-        users: this.users().length,
-        costByClient,
-        pagesByPrinter,
+      totalPrints,
+      totalCost,
+      activePrinters: this.printers().filter(p => p.installation_status === 'OK').length,
+      users: this.users().length,
+      costByClient,
+      pagesByPrinter,
     };
   });
 
@@ -284,10 +285,10 @@ export class DataService {
     const transformedReadings: ActivityItem[] = readings.map(reading => {
       const printer = printers.find(p => p.id === reading.printer_id);
       const client = printer?.client_id ? clients.find(c => c.id === printer.client_id) : null;
-      
+
       const producedBw = reading.final_counter_bw - reading.initial_counter_bw;
       const producedColor = reading.final_counter_color - reading.initial_counter_color;
-      
+
       const franchiseBw = client?.franchise_pages_bw ?? 0;
       const franchiseValueBw = client?.franchise_value_bw ?? 0;
       const franchiseColor = client?.franchise_pages_color ?? 0;
@@ -314,90 +315,22 @@ export class DataService {
     const combined = [...jobs, ...transformedReadings];
 
     return combined
-        .sort((a, b) => new Date(b.printed_at).getTime() - new Date(a.printed_at).getTime())
-        .slice(0, 10);
+      .sort((a, b) => new Date(b.printed_at).getTime() - new Date(a.printed_at).getTime())
+      .slice(0, 10);
   });
 
 
-  async loadCompanyData() {
-    const profile = this.authService.currentUser();
-    if (!profile?.company_id) {
-      this.clearData();
-      return;
-    }
-    const companyId = profile.company_id;
+  // Import Dexie DB instance
+  // (Ideally this import should be at the top, but we can rely on TS to find it or I can add a separate replacement chunk for imports if needed.
+  //  For robust code generation, I'll assume I need to import it. I'll simply rely on the method body change here and add import later if needed or assumes auto-import works?)
+  // Actually, to be safe, I'll rewrite the method and handle the logic inside. 
+  // I will assume `db` is available or I might need to make a multi-replace to add the import on top. 
+  // Wait, I can only do ONE replace_file_content per turn for contiguous block.
+  // I will use multi_replace to add the import AND change the method.
 
-    // Fetch all data in parallel
-    const [
-      clientsRes,
-      printersRes,
-      usersRes,
-      maintenanceRes,
-      printJobsRes,
-      manualCountersRes,
-      maintenanceReportsRes,
-    ] = await Promise.all([
-      this.supabase.from('clients').select('*').eq('company_id', companyId),
-      this.supabase.from('printers').select('*, clients(trade_name)').eq('company_id', companyId),
-      this.supabase.from('user_profiles').select('*').eq('company_id', companyId),
-      this.supabase.from('maintenance_schedules').select('*, clients(trade_name), maintenance_schedule_printers(printers(*))').eq('company_id', companyId),
-      this.supabase.from('print_jobs').select('*, user_profiles(full_name), printers(model)').eq('company_id', companyId),
-      this.supabase.from('manual_counter_readings').select('*').eq('company_id', companyId),
-      this.supabase.from('preventive_maintenances').select('*').eq('company_id', companyId),
-    ]);
-    
-    // Set signals with fetched data
-    if (clientsRes.data) this.clientsSignal.set(clientsRes.data);
-    if (printersRes.data) {
-        const mappedPrinters = printersRes.data.map((p: any) => ({
-            ...p,
-            client_name: p.clients?.trade_name || ''
-        }));
-        this.printersSignal.set(mappedPrinters);
-    }
-    if (usersRes.data) this.usersSignal.set(usersRes.data as User[]);
-    if(maintenanceRes.data) {
-        const mappedSchedules = maintenanceRes.data.map((s: any) => ({
-            ...s,
-            client_name: s.clients?.trade_name || '',
-            printers: s.maintenance_schedule_printers.map((msp: any) => msp.printers)
-        }));
-        this.maintenanceSchedulesSignal.set(mappedSchedules);
-    }
-    if (printJobsRes.data) {
-      const mappedJobs = printJobsRes.data.map((j: any) => ({
-          id: j.id,
-          user_id: j.user_id,
-          user_name: j.user_profiles?.full_name || 'Usuário Desconhecido',
-          printer_id: j.printer_id,
-          printer_name: j.printers?.model || 'Impressora Desconhecida',
-          document_name: j.document_name,
-          total_pages: j.total_pages,
-          total_cost: j.total_cost,
-          printed_at: j.printed_at
-      }));
-      this.printJobsSignal.set(mappedJobs);
-    }
-    if(manualCountersRes.data) this.manualCounterReadingsSignal.set(manualCountersRes.data);
-    if (maintenanceReportsRes.data) {
-        const mappedReports = maintenanceReportsRes.data.map((r: any) => ({
-            id: r.id,
-            ...r.report_data
-        }));
-        this.preventiveMaintenancesSignal.set(mappedReports as PreventiveMaintenance[]);
-    }
-  }
-
-  clearData() {
-    this.printersSignal.set([]);
-    this.usersSignal.set([]);
-    this.clientsSignal.set([]);
-    this.maintenanceSchedulesSignal.set([]);
-    this.rulesSignal.set([]);
-    this.printJobsSignal.set([]);
-    this.manualCounterReadingsSignal.set([]);
-    this.preventiveMaintenancesSignal.set([]);
-  }
+  // Changing strategy to multi_replace in the tool call below to ensure cleanliness.
+  // This tool call is just a placeholder description for the thought process. 
+  // I will proceed with multi_replace_file_content in the actual tool invocation.
 
   // --- CRUD Methods ---
   private getCompanyId(): string | undefined {
@@ -418,7 +351,7 @@ export class DataService {
       .insert({ ...dbPrinter, company_id })
       .select('*, clients(trade_name)')
       .single();
-      
+
     if (error) {
       console.error("Error adding printer:", error);
       return false;
@@ -436,17 +369,17 @@ export class DataService {
   async updatePrinter(updatedPrinter: Printer): Promise<boolean> {
     const { client_name, ...dbPrinter } = updatedPrinter;
     const { data, error } = await this.supabase.from('printers').update(dbPrinter).eq('id', dbPrinter.id).select('*, clients(trade_name)').single();
-    
+
     if (error) {
       console.error("Error updating printer:", error);
       return false;
     }
-    
+
     if (data) {
       this.printersSignal.update(printers => printers.map(p => p.id === data.id ? { ...data, client_name: data.clients?.trade_name || '' } : p));
       return true;
     }
-    
+
     return false;
   }
 
@@ -458,13 +391,13 @@ export class DataService {
 
   // Users
   async addUser(user: Omit<User, 'id'>) {
-     console.warn("addUser is not fully implemented without an invitation flow.");
-     // This will create a profile without a login.
-     const company_id = this.getCompanyId();
-     if (!company_id) return;
-     const { data, error } = await this.supabase.from('user_profiles').insert({ ...user, company_id }).select().single();
-     if(data) this.usersSignal.update(users => [...users, data as User]);
-     if (error) console.error(error);
+    console.warn("addUser is not fully implemented without an invitation flow.");
+    // This will create a profile without a login.
+    const company_id = this.getCompanyId();
+    if (!company_id) return;
+    const { data, error } = await this.supabase.from('user_profiles').insert({ ...user, company_id }).select().single();
+    if (data) this.usersSignal.update(users => [...users, data as User]);
+    if (error) console.error(error);
   }
 
   async updateUser(updatedUser: User) {
@@ -473,7 +406,7 @@ export class DataService {
     if (data) this.usersSignal.update(users => users.map(u => u.id === data.id ? { ...(data as User), email } : u));
     if (error) console.error(error);
   }
-  
+
   async deleteUser(id: string) {
     // Note: This only deletes the profile. The auth user would need to be deleted separately with admin rights.
     const { error } = await this.supabase.from('user_profiles').delete().eq('id', id);
@@ -483,23 +416,176 @@ export class DataService {
 
   // Clients
   async addClient(client: Omit<Client, 'id' | 'company_id' | 'created_at'>) {
-     const company_id = this.getCompanyId();
-     if (!company_id) return;
-     const { data, error } = await this.supabase.from('clients').insert({ ...client, company_id }).select().single();
-     if(data) this.clientsSignal.update(clients => [...clients, data]);
-     if (error) console.error(error);
+    const company_id = this.getCompanyId();
+    if (!company_id) return;
+    const { data, error } = await this.supabase.from('clients').insert({ ...client, company_id }).select().single();
+    if (data) this.clientsSignal.update(clients => [...clients, data]);
+    if (error) console.error(error);
   }
   async updateClient(updatedClient: Client) {
     const { data, error } = await this.supabase.from('clients').update(updatedClient).eq('id', updatedClient.id).select().single();
     if (data) this.clientsSignal.update(clients => clients.map(c => c.id === data.id ? data : c));
     if (error) console.error(error);
   }
+  async loadCompanyData() {
+    const profile = this.authService.currentUser();
+    if (!profile?.company_id) {
+      this.clearData();
+      return;
+    }
+    const companyId = profile.company_id;
+
+    try {
+      console.log('[DataService] Attempting to fetch data from Supabase...');
+      // Fetch all data in parallel
+      const [
+        clientsRes,
+        printersRes,
+        usersRes,
+        maintenanceRes,
+        printJobsRes,
+        manualCountersRes,
+        maintenanceReportsRes,
+      ] = await Promise.all([
+        this.supabase.from('clients').select('*').eq('company_id', companyId),
+        this.supabase.from('printers').select('*, clients(trade_name)').eq('company_id', companyId),
+        this.supabase.from('user_profiles').select('*').eq('company_id', companyId),
+        this.supabase.from('maintenance_schedules').select('*, clients(trade_name), maintenance_schedule_printers(printers(*))').eq('company_id', companyId),
+        this.supabase.from('print_jobs').select('*, user_profiles(full_name), printers(model)').eq('company_id', companyId),
+        this.supabase.from('manual_counter_readings').select('*').eq('company_id', companyId),
+        this.supabase.from('preventive_maintenances').select('*').eq('company_id', companyId),
+      ]);
+
+      // Update Signals & Cache data to IndexedDB
+      if (clientsRes.data) {
+        this.clientsSignal.set(clientsRes.data);
+        db.clients.bulkPut(clientsRes.data);
+      }
+
+      if (printersRes.data) {
+        const mappedPrinters = printersRes.data.map((p: any) => ({
+          ...p,
+          client_name: p.clients?.trade_name || ''
+        }));
+        this.printersSignal.set(mappedPrinters);
+        db.printers.bulkPut(mappedPrinters);
+      }
+
+      if (usersRes.data) {
+        this.usersSignal.set(usersRes.data as User[]);
+        db.users.bulkPut(usersRes.data as User[]);
+      }
+
+      if (maintenanceRes.data) {
+        const mappedSchedules = maintenanceRes.data.map((s: any) => ({
+          ...s,
+          client_name: s.clients?.trade_name || '',
+          // Important: We flatten logical joins for local storage if needed, but for now we store the structure
+          // Dexie stores JS objects, so this structure is fine.
+          printers: s.maintenance_schedule_printers.map((msp: any) => msp.printers)
+        }));
+        this.maintenanceSchedulesSignal.set(mappedSchedules);
+        db.maintenanceSchedules.bulkPut(mappedSchedules);
+      }
+
+      if (printJobsRes.data) {
+        const mappedJobs = printJobsRes.data.map((j: any) => ({
+          id: j.id,
+          user_id: j.user_id,
+          user_name: j.user_profiles?.full_name || 'Usuário Desconhecido',
+          printer_id: j.printer_id,
+          printer_name: j.printers?.model || 'Impressora Desconhecida',
+          // ...j, // Spread original properties to ensure we have everything
+          // Re-mapping explicit fields to match interface
+          company_id: j.company_id, // Ensure company_id is present
+          document_name: j.document_name,
+          total_pages: j.total_pages,
+          total_cost: j.total_cost,
+          printed_at: j.printed_at
+        }));
+        this.printJobsSignal.set(mappedJobs);
+        db.printJobs.bulkPut(mappedJobs);
+      }
+
+      if (manualCountersRes.data) {
+        this.manualCounterReadingsSignal.set(manualCountersRes.data);
+        db.manualCounterReadings.bulkPut(manualCountersRes.data);
+      }
+
+      if (maintenanceReportsRes.data) {
+        const mappedReports = maintenanceReportsRes.data.map((r: any) => ({
+          id: r.id,
+          company_id: r.company_id, // Ensure ID is kept
+          schedule_id: r.schedule_id,
+          printer_id: r.printer_id,
+          ...r.report_data
+        }));
+        this.preventiveMaintenancesSignal.set(mappedReports as PreventiveMaintenance[]);
+        db.preventiveMaintenances.bulkPut(mappedReports);
+      }
+
+      console.log('[DataService] Data fetched from Supabase and cached in Dexie.');
+
+    } catch (error) {
+      console.error('[DataService] Network/Supabase error. Falling back to local cache (Offline Mode).', error);
+
+      // FALLBACK: Load from Dexie
+      try {
+        const [
+          localClients,
+          localPrinters,
+          localUsers,
+          localSchedules,
+          localJobs,
+          localReadings,
+          localReports
+        ] = await Promise.all([
+          db.clients.where('company_id').equals(companyId).toArray(),
+          db.printers.where('company_id').equals(companyId).toArray(),
+          db.users.where('company_id').equals(companyId).toArray(),
+          db.maintenanceSchedules.where('company_id').equals(companyId).toArray(),
+          db.printJobs.where('company_id').equals(companyId).toArray(),
+          db.manualCounterReadings.where('company_id').equals(companyId).toArray(),
+          db.preventiveMaintenances.where('company_id').equals(companyId).toArray()
+        ]);
+
+        console.log('[DataService] Loaded data from local cache:', {
+          clients: localClients.length,
+          printers: localPrinters.length
+        });
+
+        this.clientsSignal.set(localClients);
+        this.printersSignal.set(localPrinters);
+        this.usersSignal.set(localUsers);
+        this.maintenanceSchedulesSignal.set(localSchedules);
+        this.printJobsSignal.set(localJobs);
+        this.manualCounterReadingsSignal.set(localReadings);
+        this.preventiveMaintenancesSignal.set(localReports);
+
+      } catch (cacheError) {
+        console.error('[DataService] Critical: Failed to load from cache.', cacheError);
+      }
+    }
+  }
+
+  clearData() {
+    this.printersSignal.set([]);
+    this.usersSignal.set([]);
+    this.clientsSignal.set([]);
+    this.maintenanceSchedulesSignal.set([]);
+    this.rulesSignal.set([]);
+    this.printJobsSignal.set([]);
+    this.manualCounterReadingsSignal.set([]);
+    this.preventiveMaintenancesSignal.set([]);
+    // Optionally clear local DB or keep it for next login? 
+    // Usually we keep it to support "Remember Me" offline access.
+  }
   async deleteClient(id: string) {
     const { error } = await this.supabase.from('clients').delete().eq('id', id);
     if (!error) this.clientsSignal.update(clients => clients.filter(c => c.id !== id));
     if (error) console.error(error);
   }
-  
+
   // Maintenance
   async addMaintenance(schedule: Omit<MaintenanceSchedule, 'id' | 'created_at' | 'client_name'>) {
     const company_id = this.getCompanyId();
@@ -507,18 +593,18 @@ export class DataService {
     const { printers, ...mainSchedule } = schedule;
     const { data, error } = await this.supabase.from('maintenance_schedules').insert({ ...mainSchedule, company_id }).select().single();
     if (error || !data) { console.error(error); return; }
-    
+
     const printerLinks = printers.map(p => ({ schedule_id: data.id, printer_id: p.id }));
     await this.supabase.from('maintenance_schedule_printers').insert(printerLinks);
-    
+
     // Refetch to get joined data for signal
     const { data: newSchedule } = await this.supabase.from('maintenance_schedules').select('*, clients(trade_name), maintenance_schedule_printers(printers(*))').eq('id', data.id).single();
-    if(newSchedule) this.maintenanceSchedulesSignal.update(schedules => [...schedules, { ...newSchedule, client_name: newSchedule.clients.trade_name, printers: newSchedule.maintenance_schedule_printers.map((p:any) => p.printers) }]);
+    if (newSchedule) this.maintenanceSchedulesSignal.update(schedules => [...schedules, { ...newSchedule, client_name: newSchedule.clients.trade_name, printers: newSchedule.maintenance_schedule_printers.map((p: any) => p.printers) }]);
   }
 
   async updateMaintenance(updatedSchedule: MaintenanceSchedule) {
     const { id, status } = updatedSchedule;
-    
+
     const { error } = await this.supabase
       .from('maintenance_schedules')
       .update({ status: status })
@@ -529,9 +615,9 @@ export class DataService {
       return;
     }
 
-    this.maintenanceSchedulesSignal.update(currentSchedules => 
-      currentSchedules.map(schedule => 
-        schedule.id === id 
+    this.maintenanceSchedulesSignal.update(currentSchedules =>
+      currentSchedules.map(schedule =>
+        schedule.id === id
           ? { ...schedule, status: status }
           : schedule
       )
@@ -555,17 +641,17 @@ export class DataService {
     if (!company_id) return false;
 
     const { data, error } = await this.supabase.from('manual_counter_readings').insert({ ...reading, company_id }).select().single();
-    
+
     if (error) {
       console.error('Error adding manual counter reading:', error);
       return false;
     }
-    
+
     if (data) {
       this.manualCounterReadingsSignal.update(readings => [...readings, data]);
       return true;
     }
-    
+
     return false;
   }
 
@@ -591,7 +677,7 @@ export class DataService {
       return { success: false, error: 'ID do relatório inválido.' };
     }
     const [schedule_id, printer_id] = id.split('_');
-    
+
     // DEBUG LOGS
     console.log("--- [DEBUG] addPreventiveMaintenance ---");
     console.log("ID Completo:", id);
@@ -613,8 +699,8 @@ export class DataService {
       // Most detailed error possible
       console.error("[DEBUG] Erro retornado pelo Supabase ao inserir:", JSON.stringify(error, null, 2));
       return { success: false, error: `Código: ${error.code} | Detalhes: ${error.details} | Hint: ${error.hint} | Mensagem: ${error.message}` };
-    } 
-    
+    }
+
     if (data) {
       console.log("[DEBUG] Inserção no Supabase bem-sucedida. Dados retornados:", data);
       this.preventiveMaintenancesSignal.update(maintenances => [...maintenances, maintenance]);
@@ -624,7 +710,7 @@ export class DataService {
     console.error("[DEBUG] Falha desconhecida. Nenhum dado ou erro retornado pelo Supabase.");
     return { success: false, error: 'Falha desconhecida ao inserir dados. A resposta do servidor foi vazia.' };
   }
-  
+
   // MOCKED for now
   // FIX: Added mock methods for rules management.
   addRule(rule: Omit<PrintRule, 'id'>): void { const newRule: PrintRule = { id: `pr-${Date.now()}`, ...rule, target_name: rule.target_name || rule.target_id }; this.rulesSignal.update(rules => [...rules, newRule]); }
@@ -633,11 +719,11 @@ export class DataService {
   addOutsourcingContract(contract: Omit<OutsourcingContract, 'id'>): void { const newContract: OutsourcingContract = { id: `oc${Date.now()}`, ...contract }; this.outsourcingContractsSignal.update(contracts => [...contracts, newContract]); }
   updateOutsourcingContract(updatedContract: OutsourcingContract): void { this.outsourcingContractsSignal.update(contracts => contracts.map(c => c.id === updatedContract.id ? updatedContract : c)); }
   deleteOutsourcingContract(id: string): void { this.outsourcingContractsSignal.update(contracts => contracts.filter(c => c.id !== id)); }
-  
+
   // --- API-like Methods for components ---
   getPrintJobsStream() { return toObservable(this.printJobs); }
   getDepartments() { return signal(['Financeiro', 'Marketing', 'RH', 'Diretoria', 'TI']).asReadonly(); }
   getPendingJobs() { return toObservable(signal([])); } // Mocked
-  releaseJob(id: number) {}
-  cancelJob(id: number) {}
+  releaseJob(id: number) { }
+  cancelJob(id: number) { }
 }
