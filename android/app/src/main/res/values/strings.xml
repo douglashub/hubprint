@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HubPrint</string>
+    <string name="title_activity_main">HubPrint</string>
+    <string name="package_name">com.hubprint.app</string>
+    <string name="custom_url_scheme">com.hubprint.app</string>
+</resources>
